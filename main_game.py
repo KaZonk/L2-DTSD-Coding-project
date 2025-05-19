@@ -5,18 +5,20 @@ import tkinter as tk
 from tkinter import ttk
 import random
 
-# Temporary useful link: https://www.digitalocean.com/community/tutorials/tkinter-working-with-classes
+
 
 class Game(tk.Tk):
     """Initilising Main window as a class"""
     def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
         """using the innit function create the necesserary
-        widgets when Game is called"""
+        widgets when the class 'Game' is called"""
         
-        self.wm_title("Click ball game")
+        self.wm_title("Clicker game")
+        self.wm_geometry("1200x800")
 
         # creating a container as a frame
-        container = tk.Frame(self, height=400, width=600)
+        container = tk.Frame(self, height=800, width=1200)
 
         container.pack(side="top", fill="both", expand=True)
 
@@ -27,37 +29,79 @@ class Game(tk.Tk):
         # Create a dictionary of Frames
         self.frames = {}
 
-        for F in (MainPage, SettingMenu, HelpMenu, AboutMenu):
+        for F in (MainPage, SettingMenu):
             """So, I will use a for loop to initallise these
             class as frames so that they be raise and unraise
             like pages"""
-            pass
+            frame = F(container, self)
+
+            # the Game class act as the root window for the frames.
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky='nsew')
+        
+        # Calling a function to switch page, and also let the main page be first
+        self.show_frame(MainPage)
+
+    def show_frame(self, cont):
+        """This function find the frame in the dictionary 
+        and raise it to the top"""
+        frame = self.frames[cont]
+        frame.tkraise()
 
 
 
 
-class MainPage():
-    def __init__(self):
-        pass
+class MainPage(tk.Frame):
+    def __init__(self, parent, controller):
+        #intialise the class as a frame
+        tk.Frame.__init__(self, parent)
+
+        label = tk.Label(self, text= "Main Menu")
+        label.pack(padx=10, pady=10)
+
+        # button to switch frame, using lambda function to call show_frame()
+        switch_window_button = tk.Button(
+            self,
+            text="Go to Setting",
+            command=lambda: controller.show_frame(SettingMenu)
+        )
+        switch_window_button.pack(side="bottom", fill=tk.X)
+
+
 
     def start():
         pass
     pass
 
-class SettingMenu():
-    def __init__(self):
-        pass
+class SettingMenu(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        # title of setting
+        label = tk.Label(self, text="This is Setting menu")
+        label.pack(padx=10, pady=10)
+
+        # Button switch to main menu
+        switch_window_button = tk.Button(
+            self,
+            text="Go to back to Main Menu",
+            command=lambda: controller.show_frame(MainPage)
+        )
+        switch_window_button.pack(side="bottom", fill=tk.X)
 
     def quit():
         pass
     
     pass
 
-class HelpMenu():
+
+class HelpMenu(tk.Frame):
     pass
 
-class AboutMenu():
+
+class AboutMenu(tk.Frame):
     pass
 
 if __name__ == "__main__":
-    pass
+    root = Game()
+    root.mainloop()

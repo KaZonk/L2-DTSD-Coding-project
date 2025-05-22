@@ -126,9 +126,6 @@ class MainPage(tk.Frame):
 
 class SettingMenu(tk.Frame):
     def __init__(self, parent, controller):
-
-        
-
         vls_pos = [690,235]
         vllb_pos = [400,235]
         vllb_pos2 = [900,235]

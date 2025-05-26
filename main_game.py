@@ -126,62 +126,92 @@ class MainPage(tk.Frame):
 
 class SettingMenu(tk.Frame):
     def __init__(self, parent, controller):
+        """This is the setting menu, where the player can change
+        sound and switch quality and also switch to main menu"""
+
+        # Position for widgets and colours
         vls_pos = [690,235]
         vllb_pos = [400,235]
         vllb_pos2 = [900,235]
         MENU_BLUE = "#0cc0df"
+        self.quality = ["Low", "Medium", "High", "Super-High"]
+
+
         tk.Frame.__init__(self, parent)
 
         # Load the background.
-        setting_bg = Image.open("Sprites\\setting_menu_bg.png")
-        self.setting_menu_bg = ImageTk.PhotoImage(setting_bg)
+        self.setting_bg = Image.open("Sprites/setting_menu_bg.png")
+        self.setting_menu_bg = ImageTk.PhotoImage(self.setting_bg)
 
         # Place background with label 
-        image_lbl = tk.Label(self, image=self.setting_menu_bg)
-        image_lbl.place(x=0, y=0, relwidth=1, relheight=1)
+        self.image_lbl = tk.Label(self, image=self.setting_menu_bg)
+        self.image_lbl.place(x=0, y=0, relwidth=1, relheight=1)
 
         # Keep a reference to prevent garbage collection
-        image_lbl.image = self.setting_menu_bg  
+        self.image_lbl.image = self.setting_menu_bg  
        
 
         # title of setting
-        label = tk.Label(self, text="This is Setting menu")
-        label.pack(padx=10, pady=10)
+        self.label = tk.Label(self, text="This is Setting menu")
+        self.label.pack(padx=10, pady=10)
         
-        volume_lbl = tk.Label(self, text="Sound Volume", 
+        # Volume label for right and left side of the slider
+        self.volume_lbl = tk.Label(self, text="Sound Volume", 
                               font=("Microsoft Sans Serif",26), bg=MENU_BLUE)
-        volume_lbl.place(in_=image_lbl, x=vllb_pos[0], 
+        self.volume_lbl.place(in_=self.image_lbl, x=vllb_pos[0], 
                          y=vllb_pos[1], anchor="center")
         
-        volume_lbl2 = tk.Label(self, text="70%",
+        self.volume_lbl2 = tk.Label(self, text="70%",
                               font=("Microsoft Sans Serif",26), bg=MENU_BLUE)
-        volume_lbl2.place(in_=image_lbl, x=vllb_pos2[0], 
+        self.volume_lbl2.place(in_=self.image_lbl, x=vllb_pos2[0], 
                          y=vllb_pos2[1], anchor="center")
 
         # Volume Slider
-        volume_sld = tk.Scale(self, from_=0, to=100, 
+        self.volume_sld = tk.Scale(self, from_=0, to=100, 
                               highlightbackground="black",sliderlength=10, 
                               orient="horizontal",bg="black", fg=MENU_BLUE, 
                               highlightthickness=1,troughcolor=MENU_BLUE, 
-                              resolution=1, length=300, 
-                              activebackground="black")
-        volume_sld.set(70)
-        volume_sld.place(in_=image_lbl, x=vls_pos[0], 
+                              resolution=1, length=300, command=self.update_volume_lbl,
+                              showvalue=False, activebackground="black")
+        self.volume_sld.set(70)
+        self.volume_sld.place(in_=self.image_lbl, x=vls_pos[0], 
                          y=vls_pos[1], anchor="center")
+        
+        # Quality label 
+        self.quality_lbl = tk.Label(self, text="Quality",
+                              font=("Microsoft Sans Serif",26), bg=MENU_BLUE)
+        self.quality_lbl.place(in_=self.image_lbl, x=vllb_pos[0],
+                         y=vllb_pos[1] + 100, anchor="center")
+        
+        self.quality_bt = tk.Button(self, text="Medium", width=10, command= self.update_quality,
+                               font=("Microsoft Sans Serif",26), bg=MENU_BLUE)
+        self.quality_bt.place(in_=self.image_lbl, x=vllb_pos[0]+200,
+                         y=vllb_pos[1] + 100, anchor="center")
+        
 
         # Button switch to main menu
-        switch_window_button = tk.Button(
+        self.switch_window_button = tk.Button(
             self,
             text="Go to back to Main Menu",
             command=lambda: controller.show_frame(MainPage)
         )
-        switch_window_button.pack(side="bottom", fill=tk.X)
+        self.switch_window_button.pack(side="bottom", fill=tk.X)
 
+    def update_volume_lbl(self, value):
+        """This function updates the volume label"""
+        self.volume_lbl2.config(text=f"{value}%")
     
+    def update_quality(self):
+        """This function updates the quality value"""
+
+        # Get the first element of the list
+        text = self.quality.pop(0)
+        # Put it at the end of the list
+        self.quality.append(text)
+        # Configure the button's text
+        self.quality_bt.config(text=self.quality[0])
 
 
-    
-    pass
 
 
 class HelpMenu(tk.Frame):

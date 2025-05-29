@@ -84,11 +84,6 @@ class Game(tk.Tk):
 
 
 
-    def quit():
-        pass
-
-
-
 
 class MainPage(tk.Frame):
     """This is the MainPage, where the player will first be greeted

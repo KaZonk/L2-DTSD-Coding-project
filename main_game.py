@@ -16,7 +16,7 @@ class Game(tk.Tk):
     TEXT_GOLD = "#dbae3c"
     BT_BLUE = "#004aad"
     # font
-    BT_FONT = ('Times', 20)
+    BT_FONT = ('Times', 24)
     text_font = ("Microsoft Sans Serif",26)
     # position for widgets
     vl_sl_pos = [690,235]
@@ -47,7 +47,7 @@ class Game(tk.Tk):
 
         # Create a dictionary of Frames.
         pg_class_list = [MainPage, SettingMenu, HelpMenu, 
-                         AboutMenu, LeaderBoard
+                         AboutMenu, GameMain
                          ]
         self.frames = {}
 
@@ -59,7 +59,6 @@ class Game(tk.Tk):
             # the Game class act as the root window for the frames.
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky='nsew')
-            frame.bind("<Button-1>", self.show_xy)
 
         
         
@@ -73,16 +72,6 @@ class Game(tk.Tk):
         and raise it to the top"""
         frame = self.frames[controller]
         frame.tkraise()
-
-    def show_xy(self,event):
-                """Show x and y position when clicked
-                just for designing purpose"""
-                x, y = event.x, event.y
-                print(f"Mouse position: x={x}, y={y}")
-    
-
-
-
 
 
 class MainPage(tk.Frame):
@@ -114,6 +103,7 @@ class MainPage(tk.Frame):
             "About Menu" : AboutMenu,
             "Help Menu" : HelpMenu,
             "Setting Menu" : SettingMenu,
+            "Play Game" : GameMain
             }
 
         for page_name, page_class in pages.items():
@@ -130,25 +120,35 @@ class MainPage(tk.Frame):
             )
             switch_frame_bt.pack(side="bottom", padx=10, pady=10)
 
-        # This is the button that will start the game.
-        play_bt = tk.Button(self, text='Play', fg=controller.TEXT_GOLD,
-                            width=10, height=2, bg=controller.BT_BLUE,
-                            font=("Forte", 24),
-                            activebackground=controller.MENU_BLUE, 
-                            command= self.start_game
-                            )
-        play_bt.pack(side="bottom", padx=10, pady=10)
 
-    def start_game(self):
-        """This will start the game"""
-        print('Game start')
+class GameMain(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        
+        # title of setting
+        label = tk.Label(self, text="This is the Game Main")
+        label.pack(padx=10, pady=10)
 
+        # Load the background.
+        self.game_main = Image.open("Sprites/game_bg.png")
+        self.game_bg = ImageTk.PhotoImage(self.game_main)
 
+        # Place background with label 
+        self.game_bg_lbl = tk.Label(self, image=self.game_bg)
+        self.game_bg_lbl.place(x=0, y=0, relwidth=1, relheight=1)
 
+        # Keep a reference to prevent garbage collection
+        self.game_bg_lbl.image = self.game_bg
 
+        # Button switch to main menu
+        self.switch_window_button = tk.Button(
+            self, text="Back to Main Menu", bg=controller.BT_BLUE, 
+            fg=controller.TEXT_GOLD, activebackground="gray",
+            font=controller.text_font,
+            command=lambda: controller.show_frame(MainPage)
+        )
+        self.switch_window_button.pack(side="top", anchor="ne")
 
-    
-    
 
 class SettingMenu(tk.Frame):
     """This is the setting menu, where the player can change
@@ -332,22 +332,7 @@ class AboutMenu(tk.Frame):
         )
         self.switch_window_button.pack(side="top", anchor="ne")
 
-class LeaderBoard(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        
-        # title of setting
-        label = tk.Label(self, text="This is the LeaderBoard")
-        label.pack(padx=10, pady=10)
 
-        # Button switch to main menu
-        self.switch_window_button = tk.Button(
-            self, text="Back to Main Menu", bg=controller.BT_BLUE, 
-            fg=controller.TEXT_GOLD, activebackground="gray",
-            font=controller.text_font,
-            command=lambda: controller.show_frame(MainPage)
-        )
-        self.switch_window_button.pack(side="top", anchor="ne")
 
 if __name__ == "__main__":
     root = Game()

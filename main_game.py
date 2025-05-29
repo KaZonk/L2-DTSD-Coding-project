@@ -17,13 +17,13 @@ class Game(tk.Tk):
     BT_BLUE = "#004aad"
     # font
     BT_FONT = ('Times', 24)
-    text_font = ("Microsoft Sans Serif",26)
+    text_font = ("Microsoft Sans Serif",30)
     # position for widgets
-    vl_sl_pos = [690,235]
-    vllb_pos = [400,235]
-    vllb_pos2 = [900,235]
-    qual_lbl_pos = [400,320]
-    qual_bt_pos = [690,320]
+    vl_sl_pos = [690,200]
+    vllb_pos = [380,200]
+    vllb_pos2 = [900,200]
+    qual_lbl_pos = [380,280]
+    qual_bt_pos = [690,280]
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)

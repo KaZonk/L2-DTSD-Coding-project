@@ -128,26 +128,45 @@ class GameMain(tk.Frame):
         # title of setting
         label = tk.Label(self, text="This is the Game Main")
         label.pack(padx=10, pady=10)
-
+        
         # Load the background.
         self.game_main = Image.open("Sprites/game_bg.png")
         self.game_bg = ImageTk.PhotoImage(self.game_main)
 
-        # Place background with label 
-        self.game_bg_lbl = tk.Label(self, image=self.game_bg)
-        self.game_bg_lbl.place(x=0, y=0, relwidth=1, relheight=1)
+        # create a subframe to hold canvas
+        sub_frame = tk.Frame(self)
+        sub_frame.pack(side="top", fill="both", expand=True)
+        sub_frame.grid_rowconfigure(0, weight=1)  # For the canvas
+        sub_frame.grid_columnconfigure(0, weight=1)
 
-        # Keep a reference to prevent garbage collection
-        self.game_bg_lbl.image = self.game_bg
-
-        # Button switch to main menu
+        # Button switch to main menu (placed in GameMain frame)
         self.switch_window_button = tk.Button(
             self, text="Back to Main Menu", bg=controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
             font=controller.text_font,
             command=lambda: controller.show_frame(MainPage)
         )
-        self.switch_window_button.pack(side="top", anchor="ne")
+        # Use place for precise positioning at the top-right corner
+        self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
+                                        x=-10, y=10
+        )
+
+        # create canvas for image
+        self.canvas = tk.Canvas(sub_frame, width=1200, height=800)
+        self.canvas.pack(fill="both", expand=True)
+
+        # Place background within the canvas
+        self.canvas.create_image(0, 0, image=self.game_bg, anchor='nw') 
+        
+        # Keep a reference to prevent garbage collection
+        self.canvas.image = self.game_bg
+        
+        # create circle as rubbish(replace later with actual rubbish sprite).
+        self.circle_id = self.canvas.create_oval(50, 50, 150, 150, fill='red')
+        self.canvas.tag_bind(self.circle_id, "<Button-1>", self.clicked)
+
+    def clicked(self, event):
+        print("Circle Clicked!")
 
 
 class SettingMenu(tk.Frame):
@@ -158,9 +177,6 @@ class SettingMenu(tk.Frame):
         """The setting menu have the following:
         background, volume slider and buttons to switch quality
         button to return to main menu."""
-
-
-
 
         tk.Frame.__init__(self, parent)
 
@@ -319,9 +335,10 @@ class AboutMenu(tk.Frame):
             Ut hendrerit semper vel class aptent taciti sociosqu. 
             Ad litora torquent per conubia nostra inceptos himenaeos."""
 
-        self.long_paragraph = tk.Text(self, height = 10, width = 52)
+        self.long_paragraph = tk.Text(self, height = 10, width = 104, 
+                                        bg='yellow')
         self.long_paragraph.insert(tk.END, self.long_text)
-        self.long_paragraph.pack(padx=10, pady=10, anchor='center')
+        self.long_paragraph.pack(padx=10, pady=10, side='bottom')
 
         # Button switch to main menu
         self.switch_window_button = tk.Button(

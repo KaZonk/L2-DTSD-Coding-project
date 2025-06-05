@@ -24,6 +24,8 @@ class Game(tk.Tk):
     vllb_pos2 = [900,200]
     qual_lbl_pos = [380,280]
     qual_bt_pos = [690,280]
+    txt_box_height = 12
+    txt_box_width = 125
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -162,7 +164,9 @@ class GameMain(tk.Frame):
         self.canvas.image = self.game_bg
         
         # create circle as rubbish(replace later with actual rubbish sprite).
-        self.circle_id = self.canvas.create_oval(50, 50, 150, 150, fill='red')
+        self.circle_id = self.canvas.create_oval(550, 450, 650, 550, 
+                                                 fill='red'
+        )
         self.canvas.tag_bind(self.circle_id, "<Button-1>", self.clicked)
 
     def clicked(self, event):
@@ -324,22 +328,6 @@ class AboutMenu(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.about_img_lbl.image = self.about_menu_bg
 
-        # Really long text
-        self.long_text = """Lorem ipsum dolor sit 
-        amet consectetur adipiscing elit.
-          Quisque faucibus ex sapien vitae pellentesque sem placerat.
-            In id cursus mi pretium tellus duis convallis. 
-            Tempus leo eu aenean sed diam urna tempor. 
-            Pulvinar vivamus fringilla lacus nec metus bibendum egestas. 
-            Iaculis massa nisl malesuada lacinia integer nunc posuere. 
-            Ut hendrerit semper vel class aptent taciti sociosqu. 
-            Ad litora torquent per conubia nostra inceptos himenaeos."""
-
-        self.long_paragraph = tk.Text(self, height = 10, width = 104, 
-                                        bg='yellow')
-        self.long_paragraph.insert(tk.END, self.long_text)
-        self.long_paragraph.pack(padx=10, pady=10, side='bottom')
-
         # Button switch to main menu
         self.switch_window_button = tk.Button(
             self, text="Back to Main Menu", bg=controller.BT_BLUE, 
@@ -348,6 +336,44 @@ class AboutMenu(tk.Frame):
             command=lambda: controller.show_frame(MainPage)
         )
         self.switch_window_button.pack(side="top", anchor="ne")
+
+
+        # First Paragraph
+        self.long_text = """Lorem ipsum dolor sit 
+                amet consectetur adipiscing elit.
+          Quisque faucibus ex sapien vitae pellentesque sem placerat.
+            In id cursus mi pretium tellus duis convallis. 
+            Tempus leo eu aenean sed diam urna tempor. 
+            Pulvinar vivamus fringilla lacus nec metus bibendum egestas. 
+            Iaculis massa nisl malesuada lacinia integer nunc posuere. 
+            Ut hendrerit semper vel class aptent taciti sociosqu. 
+            Ad litora torquent per conubia nostra inceptos himenaeos."""
+
+        self.long_paragraph = tk.Text(self, height = controller.txt_box_height, 
+                                      width = controller.txt_box_width, 
+                                        bg='#cfb792'
+                                        )
+        self.long_paragraph.insert(tk.END, self.long_text)
+        self.long_paragraph.pack(padx=10, pady=50, side='top')
+
+        # Second Paragraph
+        self.long_text2 = """Lorem ipsum dolor sit 
+                amet consectetur adipiscing elit.
+          Quisque faucibus ex sapien vitae pellentesque sem placerat.
+            In id cursus mi pretium tellus duis convallis. 
+            Tempus leo eu aenean sed diam urna tempor. 
+            Pulvinar vivamus fringilla lacus nec metus bibendum egestas. 
+            Iaculis massa nisl malesuada lacinia integer nunc posuere. 
+            Ut hendrerit semper vel class aptent taciti sociosqu. 
+            Ad litora torquent per conubia nostra inceptos himenaeos."""
+
+        self.long_paragraph2 = tk.Text(self, height = controller.txt_box_height, 
+                                      width = controller.txt_box_width, 
+                                      bg='#ae8f60'
+                                    )
+        self.long_paragraph2.insert(tk.END, self.long_text2)
+        self.long_paragraph2.pack(padx=10, pady=50, side='top')
+
 
 
 

@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 
 
 
+
 class Game(tk.Tk):
     """Initilising Main window as a class"""
 
@@ -18,6 +19,7 @@ class Game(tk.Tk):
     # font
     BT_FONT = ('Times', 24)
     text_font = ("Microsoft Sans Serif",30)
+    place_holder_font = ("Helvetica", 16)
     # position for widgets
     vl_sl_pos = [690,200]
     vllb_pos = [380,200]
@@ -27,16 +29,24 @@ class Game(tk.Tk):
     txt_box_height = 12
     txt_box_width = 125
 
+
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         """using the innit function create the necesserary
         widgets when the class 'Game' is called"""
 
-    
         
         self.wm_title("Clicker game")
         self.wm_geometry("1200x800")
         self.resizable(False, False)
+        
+        # In-game varible.
+        self.points = 0
+        self.points_per_click = 1
+        self.bad_ending_points = -1000
+        self.good_ending_points = 1000
+        # just so it doesn't have any name at the start.
+        self.current_frame_name = None
 
         # creating a container as a frame.
         container = tk.Frame(self, height=1200, width=800)
@@ -75,6 +85,16 @@ class Game(tk.Tk):
         frame = self.frames[controller]
         frame.tkraise()
 
+        self.current_frame = frame
+        
+        self.current_frame_name = controller  # Track name of current page
+
+        if self.current_frame_name == GameMain:
+            self.current_frame.pause_game()
+        
+        if self.current_frame_name == GameMain:
+            self.current_frame.resume_game()
+
 
 class MainPage(tk.Frame):
     """This is the MainPage, where the player will first be greeted
@@ -82,7 +102,14 @@ class MainPage(tk.Frame):
     button"""
     def __init__(self, parent, controller):
         #intialise the class as a frame
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent) 
+        # this also be super().__init__(parent) 
+        # but it can be considered in the future.
+        """The MainPage have the following:"""
+
+        # Store the controller as an instance attribute, so that it can be used
+        # in the MainGame class method.
+        self.controller = controller  
 
         # Load the background.
         self.main_bg= Image.open("Sprites/main_menu_bg.png")
@@ -121,11 +148,15 @@ class MainPage(tk.Frame):
                 command= lambda p=page_class: controller.show_frame(p)
             )
             switch_frame_bt.pack(side="bottom", padx=10, pady=10)
+        
 
 
 class GameMain(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.controller = controller
+        self.parent = parent
+        self.running = False
         
         # title of setting
         label = tk.Label(self, text="This is the Game Main")
@@ -141,7 +172,7 @@ class GameMain(tk.Frame):
         sub_frame.grid_rowconfigure(0, weight=1)  # For the canvas
         sub_frame.grid_columnconfigure(0, weight=1)
 
-        # Button switch to main menu (placed in GameMain frame)
+        # Button switch to main menu
         self.switch_window_button = tk.Button(
             self, text="Back to Main Menu", bg=controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
@@ -162,15 +193,47 @@ class GameMain(tk.Frame):
         
         # Keep a reference to prevent garbage collection
         self.canvas.image = self.game_bg
-        
-        # create circle as rubbish(replace later with actual rubbish sprite).
-        self.circle_id = self.canvas.create_oval(550, 450, 650, 550, 
-                                                 fill='red'
-        )
-        self.canvas.tag_bind(self.circle_id, "<Button-1>", self.clicked)
 
-    def clicked(self, event):
-        print("Circle Clicked!")
+        # Points label
+        self.points_label = tk.Label(self, text="Points: 0", 
+        font=controller.place_holder_font)
+        self.points_label.place(anchor="n", x=600, y=50
+        )
+
+        # Falling button (ball)
+        self.falling_button = self.canvas.create_oval(
+        180, 0, 220, 40, fill="red"
+        )
+        self.canvas.tag_bind(self.falling_button, "<Button-1>", self.hit_button)
+
+        self.fall_speed = 5
+        self.update_game()
+        
+
+    def update_game(self):
+        if self.running:
+            self.canvas.move(self.falling_button, 0, self.fall_speed)
+            coords = self.canvas.coords(self.falling_button)
+            if coords[1] >= 450:  # Reset when it hits bottom
+                x = random.randint(50, 350)
+                self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
+        self.after(50, self.update_game)
+
+    def hit_button(self, event):
+        self.controller.points += self.controller.points_per_click
+        self.points_label.config(text=f"Points: {self.controller.points}")
+        x = random.randint(50, 350)
+        self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
+
+    def upgrade(self):
+        pass
+
+    def pause_game(self):
+        self.running = False
+
+    def resume_game(self):
+        self.running = True
+
 
 
 class SettingMenu(tk.Frame):
@@ -194,11 +257,6 @@ class SettingMenu(tk.Frame):
 
         # Keep a reference to prevent garbage collection
         self.image_lbl.image = self.setting_menu_bg  
-       
-
-        # title of setting
-        self.label = tk.Label(self, text="This is Setting menu")
-        self.label.pack(padx=10, pady=10)
         
         # Volume label for right and left side of the slider
         self.volume_lbl = tk.Label(self, text="Sound Volume", 

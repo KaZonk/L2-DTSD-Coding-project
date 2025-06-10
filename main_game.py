@@ -41,8 +41,8 @@ class Game(tk.Tk):
         self.resizable(False, False)
         
         # In-game varible.
-        self.points = 0
-        self.points_per_click = 1
+        self.money = 0
+        self.money_per_click = 1
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         # just so it doesn't have any name at the start.
@@ -80,20 +80,20 @@ class Game(tk.Tk):
 
 
     def show_frame(self, controller):
-        """This function find the frame in the dictionary 
-        and raise it to the top"""
+        """This function finds the frame in the dictionary 
+        and raises it to the top."""
         frame = self.frames[controller]
         frame.tkraise()
 
         self.current_frame = frame
-        
         self.current_frame_name = controller  # Track name of current page
 
-        if self.current_frame_name == GameMain:
-            self.current_frame.pause_game()
-        
-        if self.current_frame_name == GameMain:
-            self.current_frame.resume_game()
+        # Pause the game if the current frame is not GameMain
+        if isinstance(self.frames[GameMain], GameMain):
+            if self.current_frame_name == GameMain:
+                self.frames[GameMain].resume_game()
+            else:
+                self.frames[GameMain].pause_game()
 
 
 class MainPage(tk.Frame):
@@ -158,10 +158,6 @@ class GameMain(tk.Frame):
         self.parent = parent
         self.running = False
         
-        # title of setting
-        label = tk.Label(self, text="This is the Game Main")
-        label.pack(padx=10, pady=10)
-        
         # Load the background.
         self.game_main = Image.open("Sprites/game_bg.png")
         self.game_bg = ImageTk.PhotoImage(self.game_main)
@@ -194,11 +190,10 @@ class GameMain(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.canvas.image = self.game_bg
 
-        # Points label
-        self.points_label = tk.Label(self, text="Points: 0", 
-        font=controller.place_holder_font)
-        self.points_label.place(anchor="n", x=600, y=50
-        )
+        # Money label
+        self.money_lbl = tk.Label(self, text="Money: $0", 
+                                    font=controller.place_holder_font)
+        self.money_lbl.place(anchor="n", x=600, y=50)
 
         # Falling button (ball)
         self.falling_button = self.canvas.create_oval(
@@ -215,13 +210,13 @@ class GameMain(tk.Frame):
             self.canvas.move(self.falling_button, 0, self.fall_speed)
             coords = self.canvas.coords(self.falling_button)
             if coords[1] >= 450:  # Reset when it hits bottom
-                x = random.randint(50, 350)
+                x = random.randint(50, 1000)
                 self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
         self.after(50, self.update_game)
 
     def hit_button(self, event):
-        self.controller.points += self.controller.points_per_click
-        self.points_label.config(text=f"Points: {self.controller.points}")
+        self.controller.money += self.controller.money_per_click
+        self.money_lbl.config(text=f"Points: ${self.controller.money}")
         x = random.randint(50, 350)
         self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
 

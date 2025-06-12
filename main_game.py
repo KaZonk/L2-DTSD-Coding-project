@@ -42,9 +42,9 @@ class Game(tk.Tk):
         
         # In-game varible.
         self.money = 0
-        self.money_per_click = 1
         self.sanitary = 0
-        self.sanitary_per_click = 1
+        self.money_per_click = 2
+        self.sanitary_per_click = 10
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         # just so it doesn't have any name at the start.
@@ -159,6 +159,8 @@ class GameMain(tk.Frame):
         self.controller = controller
         self.parent = parent
         self.running = False
+        self.spawning_rubbish = False  # Flag to track if rubbish spawning is running
+        self.spawning_rubbish_id = None  # To store the after ID
         
         # Load the background.
         self.game_main = Image.open("Sprites/game_bg.png")
@@ -208,12 +210,6 @@ class GameMain(tk.Frame):
                                     font=controller.place_holder_font)
         self.sanitary_lbl.place(anchor="n", x=700, y=50)
 
-        # Falling button (ball)
-        self.falling_button = self.canvas.create_oval(
-        180, 0, 220, 40, fill="red"
-        )
-        self.canvas.tag_bind(self.falling_button, "<Button-1>", self.hit_button)
-
         self.rubbish_sprites = []  # List to hold rubbish sprites
 
         self.fall_speed = 10
@@ -221,40 +217,66 @@ class GameMain(tk.Frame):
         
 
     def update_game(self):
+        """This function updates the game by moving
+        the rubbish until it reaches a random y coordinate assigned
+        then after 8 seconds it removes the rubbish sprite"""
         if self.running:
             # Move Rubbish down
             for sprite, image in self.rubbish_sprites:
                 coords = self.canvas.coords(sprite)
-                if coords[1] < 500:  #move if y < 500
+                y_collision = random.randint(499, 510)  
+                if coords[1] <= y_collision:  #move if y < 500
                     self.canvas.move(sprite, 0, self.fall_speed)
-                elif coords[1] >= 500 and coords[1] < 510:  # Stop at y=500
+                elif coords[1] >= y_collision and coords[1] < y_collision+10: 
                     self.after(8000, lambda s=sprite: self.remove_rubbish(s))
-                    self.canvas.coords(sprite, coords[0], 500)  # Ensure it stays at y=500
-                    
+                    self.canvas.coords(sprite, coords[0], y_collision+10) 
         self.after(50, self.update_game)
 
-    def hit_button(self, event):
-        self.controller.money += self.controller.money_per_click
-        self.money_lbl.config(text=f"Points: ${self.controller.money}")
-        x = random.randint(50, 350)
-        self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
-
     def spawn_rubbish(self):
-        x = random.randint(20, 1160) # Random x position for ruppish entities
-        rubbish_image = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e3.png"))
-        sprite = self.canvas.create_image(x, 0, 
-                                          image=rubbish_image, anchor='nw'
-    )
+        """This function spawn rubbish sprite at random x coordinates
+        and bind a click event to it with a lambda function"""
+
+        x = random.randint(20, 1100)  # Random x position for rubbish entities
+        rubbish_image1 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e1.png"))
+        rubbish_image2 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e2.png"))
+        rubbish_image3 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e3.png"))
+
+        # Randomly choose one of the rubbish images
+        rubbish_image = random.choice([rubbish_image1, rubbish_image2, 
+                                        rubbish_image3])
+
+        sprite = self.canvas.create_image(x, 0, image=rubbish_image, anchor='nw')
         # Ensure the sprite is not garbage collected by keeping a reference
         rubbish_image.image = rubbish_image
         # Store the sprite and image reference
-        self.rubbish_sprites.append((sprite, rubbish_image))  
-    
+        self.rubbish_sprites.append((sprite, rubbish_image))
+
+        # Bind click event to the rubbish sprite 
+        # (e represent the even the object pass with tag_bind).
+        self.canvas.tag_bind(sprite, "<Button-1>",
+                             lambda e, s=sprite: self.hit_rubbish(s))
+
+    def hit_rubbish(self, sprite):
+        """Handle rubbish click: remove it and give money."""
+        if sprite in [s[0] for s in self.rubbish_sprites]:
+            """This if statement check if the spirte exist in the list
+            then remove it and give money."""
+            self.canvas.delete(sprite)  # Remove sprite from canvas
+            self.rubbish_sprites = [s for s in self.rubbish_sprites if s[0] != sprite]
+            self.give_money(self.controller.money_per_click, 
+                            self.controller.sanitary_per_click)  
+
+    def give_money(self, money_increment, sanitary_increment):
+        """Increment player's money, sanitary and update the label."""
+        self.controller.money += money_increment
+        self.controller.sanitary +=  sanitary_increment
+        self.money_lbl.config(text=f"Money: ${self.controller.money}")
+        self.sanitary_lbl.config(text=f"Sanitary: {self.controller.sanitary}")
+
     def start_spawning_rubbish(self):
-        """This function starts spawning rubbish sprites at regular 
-        intervals."""
-        self.spawn_rubbish()  # Spawn the first rubbish sprite
-        self.after(3000, self.start_spawning_rubbish)  # Spawn every 3s
+        """This function starts spawning rubbish sprites at regular intervals."""
+        self.spawn_rubbish()  # Spawn rubbish
+        self.spawning_rubbish_id = self.after(3000, self.start_spawning_rubbish)  # Schedule next spawn
     
     def remove_rubbish(self, sprite):
         """This function removes the rubbish sprite from the canvas"""
@@ -264,17 +286,22 @@ class GameMain(tk.Frame):
                                     s[0] != sprite]
             self.controller.sanitary -= 10  # Deduct sanitary points
             self.sanitary_lbl.config(text=f"Sanitary: {self.controller.sanitary}")
-    
-    def give_money(self, amount):
-        pass
         
 
     def pause_game(self):
-        self.running = False # Pause the game.
+        """Pause the game and stop spawning rubbish."""
+        self.running = False  # Pause the game.
+        if self.spawning_rubbish_id:  # Cancel scheduled rubbish spawning
+            self.after_cancel(self.spawning_rubbish_id)
+            self.spawning_rubbish_id = None
+        self.spawning_rubbish = False  # Stop spawning rubbish
 
     def resume_game(self):
-        self.running = True # Resume the game.
-        self.start_spawning_rubbish()
+        """Resume the game and start spawning rubbish if not already running."""
+        if not self.running:  # Only resume if the game is not already running
+            self.running = True
+            if not self.spawning_rubbish:  # Only start spawning if not already running
+                self.start_spawning_rubbish()
 
 
 class UpgradeMenu(tk.Frame):
@@ -287,7 +314,7 @@ class UpgradeMenu(tk.Frame):
         label.pack(padx=10, pady=10)
 
         # Load the background.
-        self.shop_bg = Image.open("Sprites\Shop_rf.png")
+        self.shop_bg = Image.open("Sprites/Shop_rf.png")
         self.shop_bg_bg = ImageTk.PhotoImage(self.shop_bg)
 
         # Place background with label 
@@ -424,7 +451,7 @@ class HelpMenu(tk.Frame):
         label.pack(padx=10, pady=10)
 
         # Load the background.
-        self.help_bg = Image.open("Sprites\help_page_bg.png")
+        self.help_bg = Image.open("Sprites/help_page_bg.png")
         self.help_menu_bg = ImageTk.PhotoImage(self.help_bg)
 
         # Place background with label 
@@ -454,7 +481,7 @@ class AboutMenu(tk.Frame):
         label.pack(padx=10, pady=10)
 
         # Load the background.
-        self.about_bg = Image.open("Sprites\About_Page_bg.png")
+        self.about_bg = Image.open("Sprites/About_Page_bg.png")
         self.about_menu_bg = ImageTk.PhotoImage(self.about_bg)
 
         # Place background with label 

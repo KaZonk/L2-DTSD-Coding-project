@@ -43,6 +43,8 @@ class Game(tk.Tk):
         # In-game varible.
         self.money = 0
         self.money_per_click = 1
+        self.sanitary = 0
+        self.sanitary_per_click = 1
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         # just so it doesn't have any name at the start.
@@ -59,7 +61,7 @@ class Game(tk.Tk):
 
         # Create a dictionary of Frames.
         pg_class_list = [MainPage, SettingMenu, HelpMenu, 
-                         AboutMenu, GameMain
+                         AboutMenu, GameMain, UpgradeMenu,
                          ]
         self.frames = {}
 
@@ -180,20 +182,31 @@ class GameMain(tk.Frame):
                                         x=-10, y=10
         )
 
-        # create canvas for image
+        # Button switch to Upgrademenu
+        self.upgrade_menu_bt = tk.Button(
+            self, text="Shop", bg="gray", 
+            fg="black", activebackground="gray",
+            font=controller.text_font,
+            command=lambda: controller.show_frame(UpgradeMenu)
+        )
+        # Use place for precise positioning at the right
+        self.upgrade_menu_bt.place(relx=1.0, rely=0.5, anchor="ne", x=-10, y=0
+        )
+
+        # Create canvas for image and Keep a reference 
         self.canvas = tk.Canvas(sub_frame, width=1200, height=800)
         self.canvas.pack(fill="both", expand=True)
-
-        # Place background within the canvas
         self.canvas.create_image(0, 0, image=self.game_bg, anchor='nw') 
-        
-        # Keep a reference to prevent garbage collection
         self.canvas.image = self.game_bg
 
         # Money label
         self.money_lbl = tk.Label(self, text="Money: $0", 
                                     font=controller.place_holder_font)
-        self.money_lbl.place(anchor="n", x=600, y=50)
+        self.money_lbl.place(anchor="n", x=459, y=50)
+
+        self.sanitary_lbl = tk.Label(self, text="Sanitary: 0", 
+                                    font=controller.place_holder_font)
+        self.sanitary_lbl.place(anchor="n", x=700, y=50)
 
         # Falling button (ball)
         self.falling_button = self.canvas.create_oval(
@@ -201,17 +214,23 @@ class GameMain(tk.Frame):
         )
         self.canvas.tag_bind(self.falling_button, "<Button-1>", self.hit_button)
 
-        self.fall_speed = 5
+        self.rubbish_sprites = []  # List to hold rubbish sprites
+
+        self.fall_speed = 10
         self.update_game()
         
 
     def update_game(self):
         if self.running:
-            self.canvas.move(self.falling_button, 0, self.fall_speed)
-            coords = self.canvas.coords(self.falling_button)
-            if coords[1] >= 450:  # Reset when it hits bottom
-                x = random.randint(50, 1000)
-                self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
+            # Move Rubbish down
+            for sprite, image in self.rubbish_sprites:
+                coords = self.canvas.coords(sprite)
+                if coords[1] < 500:  #move if y < 500
+                    self.canvas.move(sprite, 0, self.fall_speed)
+                elif coords[1] >= 500 and coords[1] < 510:  # Stop at y=500
+                    self.after(8000, lambda s=sprite: self.remove_rubbish(s))
+                    self.canvas.coords(sprite, coords[0], 500)  # Ensure it stays at y=500
+                    
         self.after(50, self.update_game)
 
     def hit_button(self, event):
@@ -220,16 +239,80 @@ class GameMain(tk.Frame):
         x = random.randint(50, 350)
         self.canvas.coords(self.falling_button, x, 0, x + 40, 40)
 
-    def upgrade(self):
+    def spawn_rubbish(self):
+        x = random.randint(20, 1160) # Random x position for ruppish entities
+        rubbish_image = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e3.png"))
+        sprite = self.canvas.create_image(x, 0, 
+                                          image=rubbish_image, anchor='nw'
+    )
+        # Ensure the sprite is not garbage collected by keeping a reference
+        rubbish_image.image = rubbish_image
+        # Store the sprite and image reference
+        self.rubbish_sprites.append((sprite, rubbish_image))  
+    
+    def start_spawning_rubbish(self):
+        """This function starts spawning rubbish sprites at regular 
+        intervals."""
+        self.spawn_rubbish()  # Spawn the first rubbish sprite
+        self.after(3000, self.start_spawning_rubbish)  # Spawn every 3s
+    
+    def remove_rubbish(self, sprite):
+        """This function removes the rubbish sprite from the canvas"""
+        if sprite in [s[0] for s in self.rubbish_sprites]:
+            self.canvas.delete(sprite)  # Remove sprite from canvas
+            self.rubbish_sprites = [s for s in self.rubbish_sprites if 
+                                    s[0] != sprite]
+            self.controller.sanitary -= 10  # Deduct sanitary points
+            self.sanitary_lbl.config(text=f"Sanitary: {self.controller.sanitary}")
+    
+    def give_money(self, amount):
         pass
+        
 
     def pause_game(self):
-        self.running = False
+        self.running = False # Pause the game.
 
     def resume_game(self):
-        self.running = True
+        self.running = True # Resume the game.
+        self.start_spawning_rubbish()
 
 
+class UpgradeMenu(tk.Frame):
+    def __init__(self, parent, controller):
+        """This is the UpgradeMenu, where the player can upgrade"""
+        tk.Frame.__init__(self, parent)
+
+        # Title
+        label = tk.Label(self, text="Upgrade Menu")
+        label.pack(padx=10, pady=10)
+
+        # Load the background.
+        self.shop_bg = Image.open("Sprites\Shop_rf.png")
+        self.shop_bg_bg = ImageTk.PhotoImage(self.shop_bg)
+
+        # Place background with label 
+        self.shop_bg_bg_lbl = tk.Label(self, image=self.shop_bg_bg)
+        self.shop_bg_bg_lbl.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Keep a reference to prevent garbage collection
+        self.shop_bg_bg_lbl.image = self.shop_bg_bg
+
+
+        # Button switch to GameMain
+        self.switch_window_button = tk.Button(
+            self, text="Back to Game", bg=controller.BT_BLUE, 
+            fg=controller.TEXT_GOLD, activebackground="gray",
+            font=controller.text_font,
+            command=lambda: controller.show_frame(GameMain)
+        )
+        # Use place for precise positioning at the top-right corner
+        self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
+                                        x=-10, y=10
+        )
+
+
+    def upgrade(self):
+        pass
 
 class SettingMenu(tk.Frame):
     """This is the setting menu, where the player can change

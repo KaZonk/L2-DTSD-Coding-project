@@ -44,7 +44,8 @@ class Game(tk.Tk):
         self.money = 0
         self.sanitary = 0
         self.money_per_click = 2
-        self.sanitary_per_click = 10
+        self.sanitary_per_click = 1000
+        self.sanitary_per_lost = 1000
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         # just so it doesn't have any name at the start.
@@ -83,7 +84,7 @@ class Game(tk.Tk):
 
     def show_frame(self, controller):
         """This function finds the frame in the dictionary 
-        and raises it to the top."""
+        and raises it to the top."""        
         frame = self.frames[controller]
         frame.tkraise()
 
@@ -159,12 +160,10 @@ class GameMain(tk.Frame):
         self.controller = controller
         self.parent = parent
         self.running = False
-        self.spawning_rubbish = False  # Flag to track if rubbish spawning is running
+        self.spawning_rubbish = False  # Flag to track rubbish spawning
         self.spawning_rubbish_id = None  # To store the after ID
-        
-        # Load the background.
-        self.game_main = Image.open("Sprites/game_bg.png")
-        self.game_bg = ImageTk.PhotoImage(self.game_main)
+        self.canvas = None  # Initialize canvas as None
+        self.load_background_images()  # Load images once
 
         # create a subframe to hold canvas
         sub_frame = tk.Frame(self)
@@ -198,8 +197,7 @@ class GameMain(tk.Frame):
         # Create canvas for image and Keep a reference 
         self.canvas = tk.Canvas(sub_frame, width=1200, height=800)
         self.canvas.pack(fill="both", expand=True)
-        self.canvas.create_image(0, 0, image=self.game_bg, anchor='nw') 
-        self.canvas.image = self.game_bg
+        self.update_background()  # Update canvas background
 
         # Money label
         self.money_lbl = tk.Label(self, text="Money: $0", 
@@ -214,7 +212,23 @@ class GameMain(tk.Frame):
 
         self.fall_speed = 10
         self.update_game()
-        
+
+    def load_background_images(self):
+        """Load all background images."""
+        self.regular_game_main = ImageTk.PhotoImage(Image.open("Sprites/game_bg.png"))
+        self.bad_ending_bg = ImageTk.PhotoImage(Image.open("Sprites/bad_ending.png"))
+        self.good_ending_bg = ImageTk.PhotoImage(Image.open("Sprites/good_ending.png"))
+
+    def update_background(self):
+        """Update the canvas background based on sanitary points."""
+        if self.canvas:  # Ensure canvas exists before accessing it
+            if self.controller.sanitary >= self.controller.good_ending_points:
+                self.canvas.create_image(0, 0, image=self.good_ending_bg, anchor='nw', tags="background")
+            elif self.controller.sanitary < self.controller.bad_ending_points:
+                self.canvas.create_image(0, 0, image=self.bad_ending_bg, anchor='nw', tags="background")
+            else:
+                self.canvas.create_image(0, 0, image=self.regular_game_main, anchor='nw', tags="background")
+            self.canvas.tag_lower("background")  # Ensure background is behind all other elements
 
     def update_game(self):
         """This function updates the game by moving
@@ -225,7 +239,7 @@ class GameMain(tk.Frame):
             for sprite, image in self.rubbish_sprites:
                 coords = self.canvas.coords(sprite)
                 y_collision = random.randint(499, 510)  
-                if coords[1] <= y_collision:  #move if y < 500
+                if coords[1] <= y_collision:
                     self.canvas.move(sprite, 0, self.fall_speed)
                 elif coords[1] >= y_collision and coords[1] < y_collision+10: 
                     self.after(8000, lambda s=sprite: self.remove_rubbish(s))
@@ -269,12 +283,13 @@ class GameMain(tk.Frame):
     def give_money(self, money_increment, sanitary_increment):
         """Increment player's money, sanitary and update the label."""
         self.controller.money += money_increment
-        self.controller.sanitary +=  sanitary_increment
+        self.controller.sanitary += sanitary_increment
         self.money_lbl.config(text=f"Money: ${self.controller.money}")
         self.sanitary_lbl.config(text=f"Sanitary: {self.controller.sanitary}")
+        self.update_background()  # Update background after sanitary changes
 
     def start_spawning_rubbish(self):
-        """This function starts spawning rubbish sprites at regular intervals."""
+        """This function starts spawning rubbish sprites at regular intervals."""        
         self.spawn_rubbish()  # Spawn rubbish
         self.spawning_rubbish_id = self.after(3000, self.start_spawning_rubbish)  # Schedule next spawn
     
@@ -284,12 +299,13 @@ class GameMain(tk.Frame):
             self.canvas.delete(sprite)  # Remove sprite from canvas
             self.rubbish_sprites = [s for s in self.rubbish_sprites if 
                                     s[0] != sprite]
-            self.controller.sanitary -= 10  # Deduct sanitary points
+            self.controller.sanitary -= self.controller.sanitary_per_lost
             self.sanitary_lbl.config(text=f"Sanitary: {self.controller.sanitary}")
+            self.update_background()  # Ensure canvas updates after sanitary changes
         
 
     def pause_game(self):
-        """Pause the game and stop spawning rubbish."""
+        """Pause the game and stop spawning rubbish."""        
         self.running = False  # Pause the game.
         if self.spawning_rubbish_id:  # Cancel scheduled rubbish spawning
             self.after_cancel(self.spawning_rubbish_id)
@@ -297,7 +313,7 @@ class GameMain(tk.Frame):
         self.spawning_rubbish = False  # Stop spawning rubbish
 
     def resume_game(self):
-        """Resume the game and start spawning rubbish if not already running."""
+        """Resume the game and start spawning rubbish if not already running."""        
         if not self.running:  # Only resume if the game is not already running
             self.running = True
             if not self.spawning_rubbish:  # Only start spawning if not already running

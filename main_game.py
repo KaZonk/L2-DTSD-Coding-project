@@ -11,7 +11,8 @@ from PIL import Image, ImageTk
 
 class Game(tk.Tk):
     """Initilising Main window as a class"""
-
+    
+    #These varible are to be use in the class itself and they are not changable
     # colours
     MENU_BLUE = "#0cc0df" 
     TEXT_GOLD = "#dbae3c"
@@ -29,7 +30,6 @@ class Game(tk.Tk):
     txt_box_height = 12
     txt_box_width = 125
 
-
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         """using the innit function create the necesserary
@@ -40,7 +40,8 @@ class Game(tk.Tk):
         self.wm_geometry("1200x800")
         self.resizable(False, False)
         
-        # In-game varible.
+        # These are in-game varible, they can change and
+        # they are often called in function within class.
         self.money = 0
         self.sanitary = 0
         self.money_per_click = 2
@@ -49,6 +50,7 @@ class Game(tk.Tk):
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         self.fall_speed = 10
+
         # just so it doesn't have any name at the start.
         self.current_frame_name = None
 
@@ -216,9 +218,12 @@ class GameMain(tk.Frame):
 
     def load_background_images(self):
         """Load all background images."""
-        self.regular_game_main = ImageTk.PhotoImage(Image.open("Sprites/game_bg.png"))
-        self.bad_ending_bg = ImageTk.PhotoImage(Image.open("Sprites/bad_ending.png"))
-        self.good_ending_bg = ImageTk.PhotoImage(Image.open("Sprites/good_ending.png"))
+        self.regular_game_main = ImageTk.PhotoImage(
+                                            Image.open("Sprites/game_bg.png"))
+        self.bad_ending_bg = ImageTk.PhotoImage(
+                                        Image.open("Sprites/bad_ending.png"))
+        self.good_ending_bg = ImageTk.PhotoImage(
+                                        Image.open("Sprites/good_ending.png"))
 
     def update_background(self):
         """Update the canvas background based on sanitary points."""
@@ -451,7 +456,6 @@ class SettingMenu(tk.Frame):
 
     def update_volume_lbl(self, value):
         """This function updates the volume label"""
-
         self.volume_lbl2.config(text=f"{value}%")
     
 
@@ -528,15 +532,11 @@ class AboutMenu(tk.Frame):
 
 
         # First Paragraph
-        self.long_text = """Lorem ipsum dolor sit 
-                amet consectetur adipiscing elit.
-          Quisque faucibus ex sapien vitae pellentesque sem placerat.
-            In id cursus mi pretium tellus duis convallis. 
-            Tempus leo eu aenean sed diam urna tempor. 
-            Pulvinar vivamus fringilla lacus nec metus bibendum egestas. 
-            Iaculis massa nisl malesuada lacinia integer nunc posuere. 
-            Ut hendrerit semper vel class aptent taciti sociosqu. 
-            Ad litora torquent per conubia nostra inceptos himenaeos."""
+        self.long_text = """This game was created by Kane, The art was created
+        by by me on Canva, music was basic stock sound effect from 
+        www.freesound.org. The coding was done by me but I'd like to thank
+        my teacher, Mrs S. and many random forum on stack exchange, and 
+        Co Pilot for helping me fix errors and bugs."""
 
         self.long_paragraph = tk.Text(self, height = controller.txt_box_height, 
                                       width = controller.txt_box_width, 

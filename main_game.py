@@ -2,7 +2,7 @@
 
 # Importing libraries
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox as mb
 import random
 from PIL import Image, ImageTk
 
@@ -45,8 +45,8 @@ class Game(tk.Tk):
         self.money = 0
         self.sanitary = 0
         self.money_per_click = 2
-        self.sanitary_per_click = 10
-        self.sanitary_per_lost = -10
+        self.sanitary_per_click = 500
+        self.sanitary_per_lost = -500
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         self.fall_speed = 10
@@ -158,7 +158,11 @@ class MainPage(tk.Frame):
 
 
 class GameMain(tk.Frame):
+    """This is where the game will take place"""
+
     def __init__(self, parent, controller):
+        """In this GameMain, there are sub frame, button
+        and to the shop menu and the label for each points system"""
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.parent = parent
@@ -176,7 +180,7 @@ class GameMain(tk.Frame):
 
         # Button switch to main menu
         self.switch_window_button = tk.Button(
-            self, text="Back to Main Menu", bg=controller.BT_BLUE, 
+            self, text="Back to Main Menu", bg=self.controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
             font=controller.text_font,
             command=lambda: controller.show_frame(MainPage)
@@ -227,13 +231,25 @@ class GameMain(tk.Frame):
 
     def update_background(self):
         """Update the canvas background based on sanitary points."""
+
         if self.canvas:  # Ensure canvas exists before accessing it
             if self.controller.sanitary >= self.controller.good_ending_points:
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
+                self.pause_game()
+                mb.showinfo("Congratulations!", 
+                            "You have achieved a good ending!",
+                            icon='info')
+                
             elif self.controller.sanitary <= self.controller.bad_ending_points:
                 self.canvas.create_image(0, 0, image=self.bad_ending_bg,
                                         anchor='nw', tags="background")
+                self.wipe_all_rubbish()
+                self.pause_game()
+                mb.showinfo("Game Over", 
+                            "You have achieved a bad ending!",
+                            icon='error')
+                
             else:
                 self.canvas.create_image(0, 0, image=self.regular_game_main,
                                         anchor='nw', tags="background")
@@ -260,11 +276,16 @@ class GameMain(tk.Frame):
         and bind a click event to it with a lambda function"""
 
         x = random.randint(20, 1100)  # Random x position for rubbish entities
-        rubbish_image1 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e1.png"))
-        rubbish_image2 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e2.png"))
-        rubbish_image3 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e3.png"))
-        rubbish_image4 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e4.png"))
-        rubbish_image5 = ImageTk.PhotoImage(Image.open("Sprites/rubbish_e5.png"))
+        rubbish_image1 = ImageTk.PhotoImage(
+                                           Image.open("Sprites/rubbish_e1.png"))
+        rubbish_image2 = ImageTk.PhotoImage(
+                                           Image.open("Sprites/rubbish_e2.png"))
+        rubbish_image3 = ImageTk.PhotoImage(
+                                           Image.open("Sprites/rubbish_e3.png"))
+        rubbish_image4 = ImageTk.PhotoImage(
+                                           Image.open("Sprites/rubbish_e4.png"))
+        rubbish_image5 = ImageTk.PhotoImage(
+                                           Image.open("Sprites/rubbish_e5.png"))
 
         # Randomly choose one of the rubbish images
         rubbish_image = random.choice([rubbish_image1, rubbish_image2, 
@@ -296,6 +317,7 @@ class GameMain(tk.Frame):
 
     def give_money(self, money_increment, sanitary_increment):
         """Increment player's money, sanitary and update the label."""
+
         self.controller.money += money_increment
         self.controller.sanitary += sanitary_increment
         self.money_lbl.config(text=f"Money: ${self.controller.money}")
@@ -331,8 +353,17 @@ class GameMain(tk.Frame):
         """Resume the game and start spawning rubbish if not already running."""        
         if not self.running:  # Only resume if the game is not already running
             self.running = True
-            if not self.spawning_rubbish:  # Only start spawning if not already running
+            if not self.spawning_rubbish: 
                 self.start_spawning_rubbish()
+    
+    def wipe_all_rubbish(self):
+        """This function removes all rubbish sprites from the canvas by
+        deleting each sprite and clearing the list."""
+        for sprite, image in self.rubbish_sprites:
+            self.canvas.delete(sprite)
+        self.rubbish_sprites.clear()
+            
+            
 
 
 class UpgradeMenu(tk.Frame):

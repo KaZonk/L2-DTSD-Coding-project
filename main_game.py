@@ -38,7 +38,8 @@ class Game(tk.Tk):
         
         self.wm_title("Clicker game")
         self.wm_geometry("1200x800")
-        self.resizable(False, False)
+        self.resizable(False, False) # Disable resizing
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
         
         # These are in-game varible, they can change and
         # they are often called in function within class.
@@ -100,6 +101,11 @@ class Game(tk.Tk):
                 self.frames[GameMain].resume_game()
             else:
                 self.frames[GameMain].pause_game()
+
+    def on_close(self):
+        """Handle window close event with confirmation."""
+        if mb.askyesno("Exit Game", "Are you sure you want to exit?"):
+            self.destroy()
 
 
 class MainPage(tk.Frame):

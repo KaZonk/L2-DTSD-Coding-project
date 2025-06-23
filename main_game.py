@@ -104,7 +104,9 @@ class Game(tk.Tk):
 
     def on_close(self):
         """Handle window close event with confirmation."""
-        if mb.askyesno("Exit Game", "Are you sure you want to exit?"):
+        if mb.askyesno("Exit Game", 
+                       "Are you sure you want to exit the game? (Your" \
+                       " progress will not be saved.)"):
             self.destroy()
 
 
@@ -124,7 +126,7 @@ class MainPage(tk.Frame):
         self.controller = controller  
 
         # Load the background.
-        self.main_bg= Image.open("Sprites/main_menu_bg.png")
+        self.main_bg= Image.open("Sprites\main_menu_bg.png")
         self.main_menu_bg = ImageTk.PhotoImage(self.main_bg)
 
         # Place background with label 
@@ -176,6 +178,7 @@ class GameMain(tk.Frame):
         self.spawning_rubbish = False  # Flag to track rubbish spawning
         self.spawning_rubbish_id = None  # To store the after ID
         self.canvas = None  # Initialize canvas as None
+        self.game_over = False
         self.load_background_images()  # Load images once
 
         # create a subframe to hold canvas
@@ -238,23 +241,25 @@ class GameMain(tk.Frame):
     def update_background(self):
         """Update the canvas background based on sanitary points."""
 
-        if self.canvas:  # Ensure canvas exists before accessing it
+        if self.canvas and self.game_over is False: 
             if self.controller.sanitary >= self.controller.good_ending_points:
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
+                self.wipe_all_rubbish()
                 self.pause_game()
-                mb.showinfo("Congratulations!", 
-                            "You have achieved a good ending!",
-                            icon='info')
+ 
+                message = "You have achieved a Good ending! \n" \
+                            "Do you want to play again?"
+                self.reset_or_nah(message)
                 
             elif self.controller.sanitary <= self.controller.bad_ending_points:
                 self.canvas.create_image(0, 0, image=self.bad_ending_bg,
                                         anchor='nw', tags="background")
                 self.wipe_all_rubbish()
                 self.pause_game()
-                mb.showinfo("Game Over", 
-                            "You have achieved a bad ending!",
-                            icon='error')
+                message = "You have achieved a bad ending! \n" \
+                            "Do you want to play again?"
+                self.reset_or_nah(message)
                 
             else:
                 self.canvas.create_image(0, 0, image=self.regular_game_main,
@@ -265,7 +270,7 @@ class GameMain(tk.Frame):
         """This function updates the game by moving
         the rubbish until it reaches a random y coordinate assigned
         then after 8 seconds it removes the rubbish sprite"""
-        if self.running:
+        if self.running and self.game_over is False:
             # Move Rubbish down
             for sprite, image in self.rubbish_sprites:
                 coords = self.canvas.coords(sprite)
@@ -332,9 +337,12 @@ class GameMain(tk.Frame):
 
     def start_spawning_rubbish(self):
         """This function starts spawning 
-        rubbish sprites at regular intervals."""        
-        self.spawn_rubbish()  # Spawn rubbish
-        self.spawning_rubbish_id = self.after(3000, self.start_spawning_rubbish)
+        rubbish sprites at regular intervals."""  
+
+        if self.game_over is False:
+            self.running = True  # Start the game      
+            self.spawn_rubbish()
+            self.spawning_rubbish_id = self.after(3000, self.start_spawning_rubbish)
 
     def remove_rubbish(self, sprite):
         """This function removes the rubbish sprite from the canvas"""
@@ -368,7 +376,26 @@ class GameMain(tk.Frame):
         for sprite, image in self.rubbish_sprites:
             self.canvas.delete(sprite)
         self.rubbish_sprites.clear()
-            
+    
+    def reset_game(self):
+        """This function resets the game by clearing all rubbish, resetting
+        money and sanitary points, and updating the labels."""
+        self.wipe_all_rubbish()
+        self.controller.money = 0
+        self.controller.sanitary = 0
+        self.money_lbl.config(text="Money: $0")
+        self.sanitary_lbl.config(text="Sanitary: 0")
+        self.update_background()
+    
+    def reset_or_nah(self,message):
+        """This function ask the player if they want to reset or stay"""
+        answer = mb.askyesno("Game Over", message, icon='info')
+        if answer:
+            self.reset_game()
+            self.controller.show_frame(GameMain)  # Reset to GameMain
+        else:
+            self.controller.show_frame(MainPage)
+            self.game_over = True  # Set game_over to True to stop the game
             
 
 

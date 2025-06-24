@@ -74,8 +74,6 @@ class Game(tk.Tk):
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky='nsew')
 
-        
-        
         # Calling a function to switch page
         # and also let the main page be first.
         self.show_frame(MainPage)
@@ -252,8 +250,6 @@ class GameMain(tk.Frame):
             if self.controller.sanitary >= self.controller.good_ending_points:
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
-                self.wipe_all_rubbish()
-                self.pause_game()
  
                 message = "You have achieved a Good ending! \n" \
                             "Do you want to play again?"
@@ -262,8 +258,6 @@ class GameMain(tk.Frame):
             elif self.controller.sanitary <= self.controller.bad_ending_points:
                 self.canvas.create_image(0, 0, image=self.bad_ending_bg,
                                         anchor='nw', tags="background")
-                self.wipe_all_rubbish()
-                self.pause_game()
                 message = "You have achieved a bad ending! \n" \
                             "Do you want to play again?"
                 self.reset_or_not(message)
@@ -396,13 +390,20 @@ class GameMain(tk.Frame):
     
     def reset_or_not(self,message):
         """This function ask the player if they want to reset or stay"""
+        self.wipe_all_rubbish()
+        self.pause_game()
+        
         answer = mb.askyesno("Game Over", message, icon='info')
         if answer:
             self.reset_game()
             self.controller.show_frame(GameMain)  # Reset to GameMain
         else:
-            self.controller.show_frame(MainPage)
             self.game_over = True  # Set game_over to True to stop the game
+            if mb.askyesno("Exit Game", 
+                           "Do you want to exit the game?"):
+                self.controller.on_close()
+            else:
+                self.controller.show_frame(MainPage)
             
 
 
@@ -633,9 +634,6 @@ class AboutMenu(tk.Frame):
                                     )
         self.long_paragraph2.insert(tk.END, self.long_text2)
         self.long_paragraph2.pack(padx=10, pady=50, side='top')
-
-
-
 
 if __name__ == "__main__":
     root = Game()

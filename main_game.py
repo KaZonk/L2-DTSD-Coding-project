@@ -22,11 +22,6 @@ class Game(tk.Tk):
     text_font = ("Microsoft Sans Serif",30)
     place_holder_font = ("Helvetica", 16)
     # position for widgets
-    vl_sl_pos = [690,200]
-    vllb_pos = [380,200]
-    vllb_pos2 = [900,200]
-    qual_lbl_pos = [380,280]
-    qual_bt_pos = [690,280]
     txt_box_height = 12
     txt_box_width = 125
 
@@ -474,14 +469,14 @@ class SettingMenu(tk.Frame):
         self.volume_lbl = tk.Label(self, text="Sound Volume", 
                               font=controller.text_font, 
                               bg=controller.MENU_BLUE)
-        self.volume_lbl.place(in_=self.image_lbl, x=controller.vllb_pos[0], 
-                         y=controller.vllb_pos[1], anchor="center")
+        self.volume_lbl.place(in_=self.image_lbl, x=380, 
+                         y=200, anchor="center")
         
         self.volume_lbl2 = tk.Label(self, text="70%", font=controller.text_font, 
                               bg=controller.MENU_BLUE
                               )
-        self.volume_lbl2.place(in_=self.image_lbl, x=controller.vllb_pos2[0], 
-                         y=controller.vllb_pos2[1], anchor="center"
+        self.volume_lbl2.place(in_=self.image_lbl, x=900, 
+                         y=200, anchor="center"
                          )
 
         # Volume Slider
@@ -494,16 +489,16 @@ class SettingMenu(tk.Frame):
                               showvalue=False, activebackground="black")
         
         self.volume_sld.set(70)
-        self.volume_sld.place(in_=self.image_lbl, x=controller.vl_sl_pos[0], 
-                         y=controller.vl_sl_pos[1], anchor="center")
+        self.volume_sld.place(in_=self.image_lbl, x=690, 
+                         y=200, anchor="center")
         
         # Quality label 
         self.quality_lbl = tk.Label(self, text="Quality",
                                 font=controller.text_font, 
                                 bg=controller.MENU_BLUE
                                     )
-        self.quality_lbl.place(in_=self.image_lbl, x=controller.qual_lbl_pos[0],
-                                y=controller.qual_lbl_pos[1], anchor="center"
+        self.quality_lbl.place(in_=self.image_lbl, x=380,
+                                y=280, anchor="center"
                                 )
         
         # Quality Button
@@ -515,8 +510,8 @@ class SettingMenu(tk.Frame):
                                     font=controller.text_font, 
                                     bg=controller.MENU_BLUE
                                     )
-        self.quality_bt.place(in_=self.image_lbl, x=controller.qual_bt_pos[0],
-                                y=controller.qual_bt_pos[1], anchor="center"
+        self.quality_bt.place(in_=self.image_lbl, x=690,
+                                y=280, anchor="center"
                                 )
         
 

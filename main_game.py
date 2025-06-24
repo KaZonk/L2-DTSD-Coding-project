@@ -139,30 +139,42 @@ class MainPage(tk.Frame):
         label = tk.Label(self, text= "Ocean Clicker", font = ('Forte', 100),
                          background=controller.MENU_BLUE, 
                          fg=controller.TEXT_GOLD)
-        label.pack(padx=10, pady=10)
+        label.place(x=200, y=50)  
+
+        # Button to exit the game
+        exit_button = tk.Button(
+            self, fg="black", bg="red", 
+                font=controller.BT_FONT, text=f"Exit Game", 
+                width=8, height=1, 
+                activebackground="gray",
+                command= lambda: controller.on_close()
+            )
+        exit_button.place(x=1000, y=725)
 
         # Dictionary for the for loop to create switch_frame_button.
         pages = {
-            "About Menu" : AboutMenu,
-            "Help Menu" : HelpMenu,
-            "Setting Menu" : SettingMenu,
-            "Play Game" : GameMain
-            }
+                "Play Game": GameMain,
+                "Setting Menu": SettingMenu,
+                "Help Menu": HelpMenu,
+                "About Menu": AboutMenu
+                }
 
-        for page_name, page_class in pages.items():
-            """This for loop uses the dictionary to create button,
-            It switch frame by calling the show_frame method
+        # Starting position for buttons
+        start_x = 500
+        start_y = 300
+        button_spacing = 125  # Space between buttons
+
+        for i, (page_name, page_class) in enumerate(pages.items()):
+            """This for loop uses the dictionary to create buttons,
+            It switches frames by calling the show_frame method
             with a lambda function."""
-
-            switch_frame_bt = tk.Button(
-                self, fg=controller.TEXT_GOLD, bg=controller.BT_BLUE, 
-                font=controller.BT_FONT, text=f"{page_name}", 
-                width=10, height=2, 
-                activebackground=controller.MENU_BLUE,
-                command= lambda p=page_class: controller.show_frame(p)
+            button = tk.Button(
+                self, text=page_name, font=controller.BT_FONT, 
+                bg=controller.BT_BLUE, activebackground=controller.MENU_BLUE,
+                fg=controller.TEXT_GOLD, width=10, height=2,
+                command=lambda page=page_class: controller.show_frame(page)
             )
-            switch_frame_bt.pack(side="bottom", padx=10, pady=10)
-        
+            button.place(x=start_x, y=start_y + i * button_spacing)
 
 
 class GameMain(tk.Frame):
@@ -250,7 +262,7 @@ class GameMain(tk.Frame):
  
                 message = "You have achieved a Good ending! \n" \
                             "Do you want to play again?"
-                self.reset_or_nah(message)
+                self.reset_or_not(message)
                 
             elif self.controller.sanitary <= self.controller.bad_ending_points:
                 self.canvas.create_image(0, 0, image=self.bad_ending_bg,
@@ -259,7 +271,7 @@ class GameMain(tk.Frame):
                 self.pause_game()
                 message = "You have achieved a bad ending! \n" \
                             "Do you want to play again?"
-                self.reset_or_nah(message)
+                self.reset_or_not(message)
                 
             else:
                 self.canvas.create_image(0, 0, image=self.regular_game_main,
@@ -387,7 +399,7 @@ class GameMain(tk.Frame):
         self.sanitary_lbl.config(text="Sanitary: 0")
         self.update_background()
     
-    def reset_or_nah(self,message):
+    def reset_or_not(self,message):
         """This function ask the player if they want to reset or stay"""
         answer = mb.askyesno("Game Over", message, icon='info')
         if answer:

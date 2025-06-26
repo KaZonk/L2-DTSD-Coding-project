@@ -416,7 +416,7 @@ class UpgradeMenu(tk.Frame):
         label.pack(padx=10, pady=10)
 
         # Load the background.
-        self.shop_bg = Image.open("Sprites/Shop_menu_reference.png")
+        self.shop_bg = Image.open("Sprites/shop_menu_bg.png")
         self.shop_bg_bg = ImageTk.PhotoImage(self.shop_bg)
 
         # Place background with label 

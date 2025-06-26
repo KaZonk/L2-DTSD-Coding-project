@@ -41,7 +41,9 @@ class Game(tk.Tk):
         self.money = 0
         self.sanitary = 0
         self.money_per_click = 2
-        self.sanitary_per_click = 500
+        # For testing purposes, the Sanitary_per_click is 500, it should be like
+        # 10 or something.
+        self.sanitary_per_click = 500 
         self.sanitary_per_lost = -500
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
@@ -389,21 +391,18 @@ class GameMain(tk.Frame):
         self.update_background()
     
     def reset_or_not(self,message):
-        """This function ask the player if they want to reset or stay"""
+        """This function ask the player if they want to reset or not.
+        If they click yes, it resets the game and switch to GameMain."""
         self.wipe_all_rubbish()
         self.pause_game()
         
         answer = mb.askyesno("Game Over", message, icon='info')
         if answer:
-            self.reset_game()
-            self.controller.show_frame(GameMain)  # Reset to GameMain
+            self.reset_game() 
+            self.controller.show_frame(GameMain)
         else:
-            self.game_over = True  # Set game_over to True to stop the game
-            if mb.askyesno("Exit Game", 
-                           "Do you want to exit the game?"):
-                self.controller.on_close()
-            else:
-                self.controller.show_frame(MainPage)
+            self.game_over = True  # Set game_over to True
+            self.controller.show_frame(MainPage)
             
 
 

@@ -426,6 +426,24 @@ class UpgradeMenu(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.shop_bg_bg_lbl.image = self.shop_bg_bg
 
+        # Hire Cleaner upgrade
+        self.hire_cleaner_lbl = tk.Label(self, text="Hire Cleaner: $1000",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=75, y=375)
+
+        # More_money per click upgrade
+        self.rbd_lbl = tk.Label(self, text="Rubbish Delivery: $1000",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=375, y=375)
+
+        # better tool upgrade
+        self.better_tool_lbl = tk.Label(self, text="Better Tool: $1000",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=700, y=375)
+
 
         # Button switch to GameMain
         self.switch_window_button = tk.Button(

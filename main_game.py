@@ -121,7 +121,7 @@ class MainPage(tk.Frame):
         self.controller = controller  
 
         # Load the background.
-        self.main_bg= Image.open("Sprites\main_menu_bg.png")
+        self.main_bg= Image.open("Sprites/main_menu_bg.png")
         self.main_menu_bg = ImageTk.PhotoImage(self.main_bg)
 
         # Place background with label 
@@ -253,7 +253,7 @@ class GameMain(tk.Frame):
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
  
-                message = "You have achieved a Good ending! \n" \
+                message = "You have achieved a Good ending! /n" \
                             "Do you want to play again?"
                 self.reset_or_not(message)
                 

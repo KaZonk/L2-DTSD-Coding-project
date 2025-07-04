@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import messagebox as mb
 import random
 from PIL import Image, ImageTk
+import pygame
 
 
 
@@ -35,6 +36,7 @@ class Game(tk.Tk):
         self.wm_geometry("1200x800")
         self.resizable(False, False) # Disable resizing
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+        pygame.mixer.init()
         
         # These are in-game varible, they can change and
         # they are often called in function within class.
@@ -54,7 +56,6 @@ class Game(tk.Tk):
 
         # creating a container as a frame.
         container = tk.Frame(self, height=1200, width=800)
-
         container.pack(side="top", fill="both", expand=True)
 
         # configuring the location of container using grid.
@@ -79,6 +80,13 @@ class Game(tk.Tk):
         # Calling a function to switch page
         # and also let the main page be first.
         self.show_frame(MainPage)
+        self.start_music()
+    
+    def start_music(self):
+        """This function starts the background music."""
+        pygame.mixer.music.load("music/hey_gamemain/hey.mp3")
+        pygame.mixer.music.play(loops=-1)
+        pygame.mixer.music.set_volume(0.3)  # Set volume to 30%
 
 
     def show_frame(self, controller):
@@ -323,6 +331,9 @@ class GameMain(tk.Frame):
         if sprite in [s[0] for s in self.rubbish_sprites]:
             """This if statement check if the spirte exist in the list
             then remove it and give money."""
+            hit_sound = pygame.mixer.Sound(
+                                        "music/sound_effect/collecting_se.wav")
+            hit_sound.play(loops=0)  
             self.canvas.delete(sprite)  # Remove sprite from canvas
             self.rubbish_sprites = [s for s in self.rubbish_sprites 
                                     if s[0] != sprite]
@@ -490,7 +501,7 @@ class SettingMenu(tk.Frame):
         self.volume_lbl.place(in_=self.image_lbl, x=380, 
                          y=200, anchor="center")
         
-        self.volume_lbl2 = tk.Label(self, text="70%", font=controller.text_font, 
+        self.volume_lbl2 = tk.Label(self, text="50%", font=controller.text_font, 
                               bg=controller.MENU_BLUE
                               )
         self.volume_lbl2.place(in_=self.image_lbl, x=900, 
@@ -505,8 +516,7 @@ class SettingMenu(tk.Frame):
                               troughcolor=controller.MENU_BLUE, 
                               length=300, command=self.update_volume_lbl,
                               showvalue=False, activebackground="black")
-        
-        self.volume_sld.set(70)
+        self.volume_sld.set(30)
         self.volume_sld.place(in_=self.image_lbl, x=690, 
                          y=200, anchor="center")
         
@@ -544,8 +554,11 @@ class SettingMenu(tk.Frame):
 
 
     def update_volume_lbl(self, value):
-        """This function updates the volume label"""
+        """This function updates the volume label and change the volume of the 
+        music in Pygame."""
         self.volume_lbl2.config(text=f"{value}%")
+        self.pygame_volume = int(value) / 100  # Convert to float between 0 - 1
+        pygame.mixer.music.set_volume(self.pygame_volume)  
     
 
     def update_quality(self):

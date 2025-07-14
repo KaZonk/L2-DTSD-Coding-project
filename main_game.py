@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import messagebox as mb
 import random
 from PIL import Image, ImageTk
+import pygame
 
 
 
@@ -35,16 +36,17 @@ class Game(tk.Tk):
         self.wm_geometry("1200x800")
         self.resizable(False, False) # Disable resizing
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+        pygame.mixer.init()
         
         # These are in-game varible, they can change and
         # they are often called in function within class.
-        self.money = 0
+        self.money = 10000
         self.sanitary = 0
         self.money_per_click = 2
         # For testing purposes, the Sanitary_per_click is 500, it should be like
         # 10 or something.
-        self.sanitary_per_click = 500 
-        self.sanitary_per_lost = -500
+        self.sanitary_per_click = 10
+        self.sanitary_per_lost = -10
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
         self.fall_speed = 10
@@ -54,7 +56,6 @@ class Game(tk.Tk):
 
         # creating a container as a frame.
         container = tk.Frame(self, height=1200, width=800)
-
         container.pack(side="top", fill="both", expand=True)
 
         # configuring the location of container using grid.
@@ -79,6 +80,13 @@ class Game(tk.Tk):
         # Calling a function to switch page
         # and also let the main page be first.
         self.show_frame(MainPage)
+        self.start_music()
+    
+    def start_music(self):
+        """This function starts the background music."""
+        pygame.mixer.music.load("music/hey_gamemain/hey.mp3")
+        pygame.mixer.music.play(loops=-1)
+        pygame.mixer.music.set_volume(0.3)  # Set volume to 30%
 
 
     def show_frame(self, controller):
@@ -121,7 +129,7 @@ class MainPage(tk.Frame):
         self.controller = controller  
 
         # Load the background.
-        self.main_bg= Image.open("Sprites\main_menu_bg.png")
+        self.main_bg= Image.open("Sprites/main_menu_bg.png")
         self.main_menu_bg = ImageTk.PhotoImage(self.main_bg)
 
         # Place background with label 
@@ -223,7 +231,7 @@ class GameMain(tk.Frame):
         self.update_background()  # Update canvas background
 
         # Money label.
-        self.money_lbl = tk.Label(self, text="Money: $0", 
+        self.money_lbl = tk.Label(self, text= f"Money: ${self.controller.money}", 
                                     font=controller.place_holder_font)
         self.money_lbl.place(anchor="n", x=459, y=50)
         
@@ -253,7 +261,7 @@ class GameMain(tk.Frame):
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
  
-                message = "You have achieved a Good ending! \n" \
+                message = "You have achieved a Good ending! /n" \
                             "Do you want to play again?"
                 self.reset_or_not(message)
                 
@@ -323,6 +331,9 @@ class GameMain(tk.Frame):
         if sprite in [s[0] for s in self.rubbish_sprites]:
             """This if statement check if the spirte exist in the list
             then remove it and give money."""
+            hit_sound = pygame.mixer.Sound(
+                                        "music/sound_effect/collecting_se.wav")
+            hit_sound.play(loops=0)  
             self.canvas.delete(sprite)  # Remove sprite from canvas
             self.rubbish_sprites = [s for s in self.rubbish_sprites 
                                     if s[0] != sprite]
@@ -410,6 +421,7 @@ class UpgradeMenu(tk.Frame):
     def __init__(self, parent, controller):
         """This is the UpgradeMenu, where the player can upgrade"""
         tk.Frame.__init__(self, parent)
+        self.controller = controller
 
         # Title
         label = tk.Label(self, text="Upgrade Menu")
@@ -426,23 +438,61 @@ class UpgradeMenu(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.shop_bg_bg_lbl.image = self.shop_bg_bg
 
-        # Hire Cleaner upgrade
-        self.hire_cleaner_lbl = tk.Label(self, text="Hire Cleaner: $1000",
-                                        font=controller.place_holder_font, 
-                                        bg=controller.MENU_BLUE)
-        self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=75, y=375)
+        self.money_lbl = tk.Label(self, text= f"Money: ${self.controller.money}",
+                             font=controller.place_holder_font,
+                             bg=controller.MENU_BLUE)
+        self.money_lbl.place(in_=self.shop_bg_bg_lbl, x=100, y=50)
 
-        # More_money per click upgrade
-        self.rbd_lbl = tk.Label(self, text="Rubbish Delivery: $1000",
+        # Hire Cleaner money label and button
+        self.hire_cleaner_lbl = tk.Label(self, text="Cost: $1000",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
-        self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=375, y=375)
+        self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=125, y=375)
 
-        # better tool upgrade
-        self.better_tool_lbl = tk.Label(self, text="Better Tool: $1000",
+        self.hire_cleaner_bt = tk.Button(self, text="Hire Cleaner",
+                                        font=controller.place_holder_font, 
+                                        bg="#00bf63",
+                                        fg="black",
+                                        activebackground="gray",
+                                        borderwidth=0,
+                                        command=lambda: 
+                                        self.upgrade_hire_cleaner(),
+                                        width=10, height=2)
+        self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=125, y=435)
+
+        # Rubbish Delivery(money per click) money label and button
+        self.rbd_lbl = tk.Label(self, text="Cost: $1000",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
-        self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=700, y=375)
+        self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=430, y=375)
+
+        self.rbd_bt = tk.Button(self, text="Rubbish Delivery",
+                                        font=controller.place_holder_font, 
+                                        bg="#00bf63",
+                                        fg="black",
+                                        activebackground="gray",
+                                        borderwidth=0,
+                                        command=lambda: 
+                                        self.upgrade_rubbish_delivery(),
+                                        width=10, height=2)
+        self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=430, y=435)
+
+        # better tool money label and button
+        self.better_tool_lbl = tk.Label(self, text="Cost: $1000",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=735, y=375)
+
+        self.better_tool_bt = tk.Button(self, text="Better Tool",
+                                        font=controller.place_holder_font, 
+                                        bg="#00bf63",
+                                        fg="black",
+                                        activebackground="gray",
+                                        borderwidth=0,  
+                                        command=lambda: 
+                                        self.upgrade_better_tool(),
+                                        width=10, height=2)
+        self.better_tool_bt.place(in_=self.shop_bg_bg_lbl, x=735, y=435)
 
 
         # Button switch to GameMain
@@ -458,8 +508,32 @@ class UpgradeMenu(tk.Frame):
         )
 
 
-    def upgrade(self):
+    def upgrade_hire_cleaner(self):
         pass
+
+    def upgrade_rubbish_delivery(self):
+        cost = 1000 + (self.controller.money_per_click - 2) * 1000
+        if self.controller.money >= cost:
+            self.controller.money -= cost
+            self.controller.money_per_click += 1
+            self.rbd_lbl.config(text=f"Cost: ${1000 + (self.controller.money_per_click - 2) * 1000}")
+            self.controller.frames[GameMain].money_lbl.config(text=f"Money: ${self.controller.money}")
+            self.controller.frames[UpgradeMenu].money_lbl.config(text=f"Money: ${self.controller.money}")
+        else:
+            mb.showerror("Error", "You don't have enough money to upgrade!")
+
+    def upgrade_better_tool(self):
+        """This function upgrades the better tool, it increases the money per click
+        and also increase the cost of the upgrade"""
+        cost = 1000 + (self.controller.sanitary_per_click  - 10) * 1000
+        if self.controller.money >= cost:
+            self.controller.money -= cost
+            self.controller.sanitary_per_click += 1
+            self.better_tool_lbl.config(text=f"Cost: ${1000 + (self.controller.sanitary_per_click - 10) * 1000}")
+            self.controller.frames[GameMain].money_lbl.config(text=f"Money: ${self.controller.money}")
+            self.controller.frames[UpgradeMenu].money_lbl.config(text=f"Money: ${self.controller.money}")
+        else:
+            mb.showerror("Error", "You don't have enough money to upgrade!")
 
 class SettingMenu(tk.Frame):
     """This is the setting menu, where the player can change
@@ -490,7 +564,7 @@ class SettingMenu(tk.Frame):
         self.volume_lbl.place(in_=self.image_lbl, x=380, 
                          y=200, anchor="center")
         
-        self.volume_lbl2 = tk.Label(self, text="70%", font=controller.text_font, 
+        self.volume_lbl2 = tk.Label(self, text="50%", font=controller.text_font, 
                               bg=controller.MENU_BLUE
                               )
         self.volume_lbl2.place(in_=self.image_lbl, x=900, 
@@ -505,8 +579,7 @@ class SettingMenu(tk.Frame):
                               troughcolor=controller.MENU_BLUE, 
                               length=300, command=self.update_volume_lbl,
                               showvalue=False, activebackground="black")
-        
-        self.volume_sld.set(70)
+        self.volume_sld.set(30)
         self.volume_sld.place(in_=self.image_lbl, x=690, 
                          y=200, anchor="center")
         
@@ -544,8 +617,11 @@ class SettingMenu(tk.Frame):
 
 
     def update_volume_lbl(self, value):
-        """This function updates the volume label"""
+        """This function updates the volume label and change the volume of the 
+        music in Pygame."""
         self.volume_lbl2.config(text=f"{value}%")
+        self.pygame_volume = int(value) / 100  # Convert to float between 0 - 1
+        pygame.mixer.music.set_volume(self.pygame_volume)  
     
 
     def update_quality(self):

@@ -40,12 +40,12 @@ class Game(tk.Tk):
         
         # These are in-game varible, they can change and
         # they are often called in function within class.
-        self.money = 10000
+        self.money = 100000
         self.sanitary = 0
         self.money_per_click = 2
         # For testing purposes, the Sanitary_per_click is 500, it should be like
         # 10 or something.
-        self.sanitary_per_click = 10
+        self.sanitary_per_click = 999
         self.sanitary_per_lost = -10
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
@@ -356,7 +356,8 @@ class GameMain(tk.Frame):
         if self.game_over is False:
             self.running = True  # Start the game      
             self.spawn_rubbish()
-            self.spawning_rubbish_id = self.after(3000, self.start_spawning_rubbish)
+            self.spawning_rubbish_id = self.after(3000, 
+                                                  self.start_spawning_rubbish)
 
     def remove_rubbish(self, sprite):
         """This function removes the rubbish sprite from the canvas"""
@@ -397,8 +398,13 @@ class GameMain(tk.Frame):
         self.wipe_all_rubbish()
         self.controller.money = 0
         self.controller.sanitary = 0
+        self.controller.money_per_click = 2
+        self.controller.sanitary_per_click = 2
         self.money_lbl.config(text="Money: $0")
         self.sanitary_lbl.config(text="Sanitary: 0")
+        self.update_background()
+        self.controller.frames[UpgradeMenu].reset_shop()
+        
         self.update_background()
     
     def reset_or_not(self,message):
@@ -438,7 +444,8 @@ class UpgradeMenu(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.shop_bg_bg_lbl.image = self.shop_bg_bg
 
-        self.money_lbl = tk.Label(self, text= f"Money: ${self.controller.money}",
+        self.money_lbl = tk.Label(self, 
+                                  text= f"Money: ${self.controller.money}",
                              font=controller.place_holder_font,
                              bg=controller.MENU_BLUE)
         self.money_lbl.place(in_=self.shop_bg_bg_lbl, x=100, y=50)
@@ -457,8 +464,8 @@ class UpgradeMenu(tk.Frame):
                                         borderwidth=0,
                                         command=lambda: 
                                         self.upgrade_hire_cleaner(),
-                                        width=10, height=2)
-        self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=125, y=435)
+                                        width=12, height=2)
+        self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=105, y=435)
 
         # Rubbish Delivery(money per click) money label and button
         self.rbd_lbl = tk.Label(self, text="Cost: $1000",
@@ -466,7 +473,7 @@ class UpgradeMenu(tk.Frame):
                                         bg=controller.MENU_BLUE)
         self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=430, y=375)
 
-        self.rbd_bt = tk.Button(self, text="Rubbish Delivery",
+        self.rbd_bt = tk.Button(self, text="Trash Disposer",
                                         font=controller.place_holder_font, 
                                         bg="#00bf63",
                                         fg="black",
@@ -474,8 +481,8 @@ class UpgradeMenu(tk.Frame):
                                         borderwidth=0,
                                         command=lambda: 
                                         self.upgrade_rubbish_delivery(),
-                                        width=10, height=2)
-        self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=430, y=435)
+                                        width=12, height=2)
+        self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=415, y=435)
 
         # better tool money label and button
         self.better_tool_lbl = tk.Label(self, text="Cost: $1000",
@@ -491,8 +498,8 @@ class UpgradeMenu(tk.Frame):
                                         borderwidth=0,  
                                         command=lambda: 
                                         self.upgrade_better_tool(),
-                                        width=10, height=2)
-        self.better_tool_bt.place(in_=self.shop_bg_bg_lbl, x=735, y=435)
+                                        width=12, height=2)
+        self.better_tool_bt.place(in_=self.shop_bg_bg_lbl, x=720, y=435)
 
 
         # Button switch to GameMain
@@ -506,6 +513,20 @@ class UpgradeMenu(tk.Frame):
         self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
                                         x=-10, y=10
         )
+    
+    def reset_shop(self):
+        """Reset the shop state, including costs and labels."""
+        self.rbd_lbl.config(text="Cost: $1000")  
+        self.better_tool_lbl.config(text="Cost: $1000")  
+        self.controller.frames[UpgradeMenu].money_lbl.config(
+                                        text=f"Money: ${self.controller.money}") 
+        
+    def update_money(self):
+        """Update the money label in the UpgradeMenu."""
+        self.controller.frames[GameMain].money_lbl.config(
+                                        text=f"Money: ${self.controller.money}")
+        self.controller.frames[UpgradeMenu].money_lbl.config(
+                                        text=f"Money: ${self.controller.money}")
 
 
     def upgrade_hire_cleaner(self):
@@ -516,22 +537,24 @@ class UpgradeMenu(tk.Frame):
         if self.controller.money >= cost:
             self.controller.money -= cost
             self.controller.money_per_click += 1
-            self.rbd_lbl.config(text=f"Cost: ${1000 + (self.controller.money_per_click - 2) * 1000}")
-            self.controller.frames[GameMain].money_lbl.config(text=f"Money: ${self.controller.money}")
-            self.controller.frames[UpgradeMenu].money_lbl.config(text=f"Money: ${self.controller.money}")
+            text = f"Cost: ${
+                            1000 +(self.controller.money_per_click - 2) * 1000}"
+            self.rbd_lbl.config(text=text)
+            self.update_money()
         else:
             mb.showerror("Error", "You don't have enough money to upgrade!")
 
     def upgrade_better_tool(self):
-        """This function upgrades the better tool, it increases the money per click
-        and also increase the cost of the upgrade"""
+        """This function upgrades the better tool, it increases the money per 
+        click and also increase the cost of the upgrade"""
         cost = 1000 + (self.controller.sanitary_per_click  - 10) * 1000
         if self.controller.money >= cost:
             self.controller.money -= cost
             self.controller.sanitary_per_click += 1
-            self.better_tool_lbl.config(text=f"Cost: ${1000 + (self.controller.sanitary_per_click - 10) * 1000}")
-            self.controller.frames[GameMain].money_lbl.config(text=f"Money: ${self.controller.money}")
-            self.controller.frames[UpgradeMenu].money_lbl.config(text=f"Money: ${self.controller.money}")
+            text = f"Cost: ${
+                       1000 + (self.controller.sanitary_per_click - 10) * 1000}"
+            self.better_tool_lbl.config(text=text)
+            self.update_money()
         else:
             mb.showerror("Error", "You don't have enough money to upgrade!")
 

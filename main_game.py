@@ -22,6 +22,7 @@ class Game(tk.Tk):
     BT_FONT = ('Times', 24)
     text_font = ("Microsoft Sans Serif",30)
     place_holder_font = ("Helvetica", 16)
+    description_font = ("Helvetica", 18)
     # position for widgets
     txt_box_height = 12
     txt_box_width = 125
@@ -45,7 +46,7 @@ class Game(tk.Tk):
         self.money_per_click = 2
         # For testing purposes, the Sanitary_per_click is 500, it should be like
         # 10 or something.
-        self.sanitary_per_click = 999
+        self.sanitary_per_click = 5
         self.sanitary_per_lost = -10
         self.bad_ending_points = -1000
         self.good_ending_points = 1000
@@ -341,11 +342,10 @@ class GameMain(tk.Frame):
                             self.controller.sanitary_per_click)  
 
     def give_money(self, money_increment, sanitary_increment):
-        """Increment player's money, sanitary and update the label."""
-
+        """Increment player's money, sanitary and update the labels."""
         self.controller.money += money_increment
         self.controller.sanitary += sanitary_increment
-        self.money_lbl.config(text=f"Money: ${self.controller.money}")
+        self.controller.frames[UpgradeMenu].update_money() 
         self.sanitary_lbl.config(text=f"Sanitary: {self.controller.sanitary}")
         self.update_background()  # Update background after sanitary changes
 
@@ -400,7 +400,7 @@ class GameMain(tk.Frame):
         self.controller.sanitary = 0
         self.controller.money_per_click = 2
         self.controller.sanitary_per_click = 2
-        self.money_lbl.config(text="Money: $0")
+        self.controller.frames[UpgradeMenu].update_money()
         self.sanitary_lbl.config(text="Sanitary: 0")
         self.update_background()
         self.controller.frames[UpgradeMenu].reset_shop()
@@ -454,7 +454,13 @@ class UpgradeMenu(tk.Frame):
         self.hire_cleaner_lbl = tk.Label(self, text="Cost: $1000",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
-        self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=125, y=375)
+        self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=125, y=325)
+
+        self.hire_cleaner_lvl = 0
+        self.hc_lvl_lbl = tk.Label(self, text="Cleaner Level: 0",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.hc_lvl_lbl.place(in_=self.shop_bg_bg_lbl, x=105, y=375)
 
         self.hire_cleaner_bt = tk.Button(self, text="Hire Cleaner",
                                         font=controller.place_holder_font, 
@@ -465,13 +471,20 @@ class UpgradeMenu(tk.Frame):
                                         command=lambda: 
                                         self.upgrade_hire_cleaner(),
                                         width=12, height=2)
-        self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=105, y=435)
+        self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=105, y=425)
 
         # Rubbish Delivery(money per click) money label and button
+
         self.rbd_lbl = tk.Label(self, text="Cost: $1000",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
-        self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=430, y=375)
+        self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=430, y=325)
+
+        self.rbd_lvl = 0
+        self.rbd_lvl_lbl = tk.Label(self, text="Disposer Level: 0",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.rbd_lvl_lbl.place(in_=self.shop_bg_bg_lbl, x=415, y=375)
 
         self.rbd_bt = tk.Button(self, text="Trash Disposer",
                                         font=controller.place_holder_font, 
@@ -482,13 +495,20 @@ class UpgradeMenu(tk.Frame):
                                         command=lambda: 
                                         self.upgrade_rubbish_delivery(),
                                         width=12, height=2)
-        self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=415, y=435)
+        self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=415, y=425)
 
-        # better tool money label and button
+        # better tool money label and button       
         self.better_tool_lbl = tk.Label(self, text="Cost: $1000",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
-        self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=735, y=375)
+        self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=735, y=325)
+
+        
+        self.tool_lvl = 0
+        self.tool_lvl_lbl = tk.Label(self, text="Tool Level: 0",
+                                        font=controller.place_holder_font, 
+                                        bg=controller.MENU_BLUE)
+        self.tool_lvl_lbl.place(in_=self.shop_bg_bg_lbl, x=720, y=375)
 
         self.better_tool_bt = tk.Button(self, text="Better Tool",
                                         font=controller.place_holder_font, 
@@ -499,7 +519,7 @@ class UpgradeMenu(tk.Frame):
                                         command=lambda: 
                                         self.upgrade_better_tool(),
                                         width=12, height=2)
-        self.better_tool_bt.place(in_=self.shop_bg_bg_lbl, x=720, y=435)
+        self.better_tool_bt.place(in_=self.shop_bg_bg_lbl, x=720, y=425)
 
 
         # Button switch to GameMain
@@ -518,8 +538,8 @@ class UpgradeMenu(tk.Frame):
         """Reset the shop state, including costs and labels."""
         self.rbd_lbl.config(text="Cost: $1000")  
         self.better_tool_lbl.config(text="Cost: $1000")  
-        self.controller.frames[UpgradeMenu].money_lbl.config(
-                                        text=f"Money: ${self.controller.money}") 
+        self.hire_cleaner_lbl.config(text="Cost: $1000")
+        self.update_money() 
         
     def update_money(self):
         """Update the money label in the UpgradeMenu."""
@@ -658,8 +678,6 @@ class SettingMenu(tk.Frame):
         self.quality_bt.config(text=self.quality[0])
 
 
-
-
 class HelpMenu(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -710,46 +728,55 @@ class AboutMenu(tk.Frame):
         self.about_img_lbl.image = self.about_menu_bg
 
         # Button switch to main menu
+        # Button switch to GameMain
         self.switch_window_button = tk.Button(
-            self, text="Back to Main Menu", bg=controller.BT_BLUE, 
+            self, text="Back to Game", bg=controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
             font=controller.text_font,
-            command=lambda: controller.show_frame(MainPage)
+            command=lambda: controller.show_frame(GameMain)
         )
-        self.switch_window_button.pack(side="top", anchor="ne")
+        # Use place for precise positioning at the top-right corner
+        self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
+                                        x=-10, y=10
+        )
 
 
         # First Paragraph
-        self.long_text = """This game was created by Kane, The art was created
-        by by me on Canva, music was basic stock sound effect from 
-        www.freesound.org. The coding was done by me but I'd like to thank
-        my teacher, Mrs S. and many random forum on stack exchange, and 
-        Co Pilot for helping me fix errors and bugs."""
+        self.long_text = (
+        "This game was created by Kane,"
+        " The art was created by me on Canva, music was basic stock sound effect from "
+        "www.freesound.org. The coding was done by me but I'd like to thank "
+        "my teacher, Mrs S. and many random forum on stack exchange, and "
+        "Co Pilot for helping me fix errors and bugs."
+        )
 
         self.long_paragraph = tk.Text(self, height = controller.txt_box_height, 
                                       width = controller.txt_box_width, 
-                                        bg='#cfb792'
+                                      font=controller.description_font,
+                                      bg='#cfb792', wrap='word' 
                                         )
         self.long_paragraph.insert(tk.END, self.long_text)
-        self.long_paragraph.pack(padx=10, pady=50, side='top')
+        self.long_paragraph.place(x=100, y=100, width=1000, height=200)
 
         # Second Paragraph
-        self.long_text2 = """Lorem ipsum dolor sit 
-                amet consectetur adipiscing elit.
-          Quisque faucibus ex sapien vitae pellentesque sem placerat.
-            In id cursus mi pretium tellus duis convallis. 
-            Tempus leo eu aenean sed diam urna tempor. 
-            Pulvinar vivamus fringilla lacus nec metus bibendum egestas. 
-            Iaculis massa nisl malesuada lacinia integer nunc posuere. 
-            Ut hendrerit semper vel class aptent taciti sociosqu. 
-            Ad litora torquent per conubia nostra inceptos himenaeos."""
+        self.long_text2 = (
+        "Lorem ipsum dolor sit amet consectetur adipiscing elit. "
+        "Quisque faucibus ex sapien vitae pellentesque sem placerat. "
+        "In id cursus mi pretium tellus duis convallis. "
+        "Tempus leo eu aenean sed diam urna tempor. "
+        "Pulvinar vivamus fringilla lacus nec metus bibendum egestas. "
+        "Iaculis massa nisl malesuada lacinia integer nunc posuere. "
+        "Ut hendrerit semper vel class aptent taciti sociosqu. "
+        "Ad litora torquent per conubia nostra inceptos himenaeos."
+        )
 
         self.long_paragraph2 = tk.Text(self, height = controller.txt_box_height, 
                                       width = controller.txt_box_width, 
-                                      bg='#ae8f60'
+                                      font=controller.description_font,
+                                      bg='#ae8f60', wrap='word' 
                                     )
         self.long_paragraph2.insert(tk.END, self.long_text2)
-        self.long_paragraph2.pack(padx=10, pady=50, side='top')
+        self.long_paragraph2.place(x=100, y=500, width=1000, height=200)
 
 if __name__ == "__main__":
     root = Game()

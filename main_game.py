@@ -47,8 +47,8 @@ class Game(tk.Tk):
         # For testing purposes, the Sanitary_per_click is 500, it should be like
         # 10 or something.
         self.sanitary_per_click = 5
-        self.sanitary_per_lost = -10
-        self.bad_ending_points = -1000
+        self.sanitary_per_lost = -15
+        self.bad_ending_points = -500
         self.good_ending_points = 1000
         self.fall_speed = 10
 
@@ -422,7 +422,6 @@ class GameMain(tk.Frame):
             self.controller.show_frame(MainPage)
             
 
-
 class UpgradeMenu(tk.Frame):
     def __init__(self, parent, controller):
         """This is the UpgradeMenu, where the player can upgrade"""
@@ -451,12 +450,12 @@ class UpgradeMenu(tk.Frame):
         self.money_lbl.place(in_=self.shop_bg_bg_lbl, x=100, y=50)
 
         # Hire Cleaner money label and button
-        self.hire_cleaner_lbl = tk.Label(self, text="Cost: $1000",
+        self.hire_cleaner_lbl = tk.Label(self, text="Cost: $105",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
         self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=125, y=325)
 
-        self.hire_cleaner_lvl = 0
+        self.hc_lvl = 0
         self.hc_lvl_lbl = tk.Label(self, text="Cleaner Level: 0",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
@@ -475,7 +474,7 @@ class UpgradeMenu(tk.Frame):
 
         # Rubbish Delivery(money per click) money label and button
 
-        self.rbd_lbl = tk.Label(self, text="Cost: $1000",
+        self.rbd_lbl = tk.Label(self, text="Cost: $30",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
         self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=430, y=325)
@@ -498,7 +497,7 @@ class UpgradeMenu(tk.Frame):
         self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=415, y=425)
 
         # better tool money label and button       
-        self.better_tool_lbl = tk.Label(self, text="Cost: $1000",
+        self.better_tool_lbl = tk.Label(self, text="Cost: $30",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
         self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=735, y=325)
@@ -550,16 +549,80 @@ class UpgradeMenu(tk.Frame):
 
 
     def upgrade_hire_cleaner(self):
-        pass
-
-    def upgrade_rubbish_delivery(self):
-        cost = 1000 + (self.controller.money_per_click - 2) * 1000
+        """This function inserts a cleaner sprite into the game, 
+        which move around randomly and automatically collects rubbish 
+        and increases the money per click."""
+        cost = self.cost_calc(self.hc_lvl, 'cleaner')
         if self.controller.money >= cost:
             self.controller.money -= cost
-            self.controller.money_per_click += 1
-            text = f"Cost: ${
-                            1000 +(self.controller.money_per_click - 2) * 1000}"
+            self.controller.money_per_click += 5
+            self.hc_lvl += 1
+            text = f"Cost: ${self.cost_calc(self.hc_lvl, 'cleaner')}"
+            self.hire_cleaner_lbl.config(text=text)
+            self.hc_lvl_lbl.config(text=f"Cleaner Level: {self.hc_lvl}")
+            self.update_money()
+
+            # Create cleaner sprite
+            cleaner_image = ImageTk.PhotoImage(
+                Image.open("Sprites/fish_friend_1.png")
+            )
+            cleaner_sprite = self.controller.frames[GameMain].canvas.create_image(
+                random.randint(20, 1100), 500,
+                image=cleaner_image, anchor='nw'
+            )
+            cleaner_image.image = cleaner_image  # Prevent garbage collection
+
+            # Start moving and giving bonuses
+            self.move_cleaner(cleaner_sprite)
+            self.action_cleaner(cleaner_sprite)
+
+    def move_cleaner(self, cleaner_sprite):
+        """This function moves the cleaner sprite randomly around the canvas."""
+        if not self.controller.frames[GameMain].game_over:
+            x_move = random.choice([-10, 10])
+            y_move = random.choice([-10, 10])
+            self.controller.frames[GameMain].canvas.move(
+                                                 cleaner_sprite, x_move, y_move)
+
+            # Keep the cleaner within bounds
+            coords = self.controller.frames[GameMain].canvas.coords(
+                                                                cleaner_sprite)
+            if (coords[0] < 0 or coords[0] > 1100 
+                or coords[1] < 0 or coords[1] > 700):
+                self.controller.frames[GameMain].canvas.move(
+                                                cleaner_sprite, -x_move, -y_move)
+
+                
+            self.after(500, lambda: self.move_cleaner(cleaner_sprite))
+
+    def action_cleaner(self, cleaner_sprite):
+        """Cleaner will randomly clean for player. Update the money and sanitary
+        while doing it."""
+        if not self.controller.frames[GameMain].game_over:
+            money_bonus = random.randint(5, 10)
+            sanitary_bonus = random.randint(2, 10)
+            self.controller.money += money_bonus
+            self.controller.sanitary += sanitary_bonus
+            self.update_money()
+            self.controller.frames[GameMain].sanitary_lbl.config(
+                text=f"Sanitary: {self.controller.sanitary}"
+            )
+            self.controller.frames[GameMain].update_background()
+
+        # Schedule the next bonus
+        random_delay = random.randint(5000, 15000)
+        self.after(random_delay, lambda: self.action_cleaner(cleaner_sprite))
+
+
+    def upgrade_rubbish_delivery(self):
+        cost = self.cost_calc(self.rbd_lvl, 'rbd')
+        if self.controller.money >= cost:
+            self.controller.money -= cost
+            self.controller.money_per_click += 5
+            self.rbd_lvl += 1
+            text = f"Cost: ${self.cost_calc(self.rbd_lvl, 'rbd')}"
             self.rbd_lbl.config(text=text)
+            self.rbd_lvl_lbl.config(text=f"Disposer Level: {self.rbd_lvl}")
             self.update_money()
         else:
             mb.showerror("Error", "You don't have enough money to upgrade!")
@@ -567,16 +630,25 @@ class UpgradeMenu(tk.Frame):
     def upgrade_better_tool(self):
         """This function upgrades the better tool, it increases the money per 
         click and also increase the cost of the upgrade"""
-        cost = 1000 + (self.controller.sanitary_per_click  - 10) * 1000
+        cost = self.cost_calc(self.tool_lvl, 'tool')
         if self.controller.money >= cost:
             self.controller.money -= cost
-            self.controller.sanitary_per_click += 1
-            text = f"Cost: ${
-                       1000 + (self.controller.sanitary_per_click - 10) * 1000}"
+            self.controller.sanitary_per_click += 5
+            self.tool_lvl += 1
+            text = f"Cost: ${self.cost_calc(self.tool_lvl, 'tool')}"
             self.better_tool_lbl.config(text=text)
+            self.tool_lvl_lbl.config(text=f"Tool Level: {self.tool_lvl}")
             self.update_money()
         else:
             mb.showerror("Error", "You don't have enough money to upgrade!")
+
+    def cost_calc(self, level, upgrade_type):
+        """Calculate the cost based on the level."""
+        if upgrade_type == 'tool' or upgrade_type == 'rbd':
+            c = 4 * (level)**2 + 34 * level + 30
+        else:
+            c = 5 * (level)**2 + 45 * level + 105
+        return c
 
 class SettingMenu(tk.Frame):
     """This is the setting menu, where the player can change
@@ -669,7 +741,6 @@ class SettingMenu(tk.Frame):
 
     def update_quality(self):
         """This function updates the quality value"""
-
         # Get the first element of the list
         text = self.quality.pop(0)
         # Put it at the end of the list
@@ -744,10 +815,10 @@ class AboutMenu(tk.Frame):
         # First Paragraph
         self.long_text = (
         "This game was created by Kane,"
-        " The art was created by me on Canva, music was basic stock sound effect from "
-        "www.freesound.org. The coding was done by me but I'd like to thank "
-        "my teacher, Mrs S. and many random forum on stack exchange, and "
-        "Co Pilot for helping me fix errors and bugs."
+        "The art was created by me on Canva, music was basic stock sound effect"
+        "from www.freesound.org. The coding was done by me but I'd like "
+        "to thank my teacher, Mrs S. and many random forum on stack exchange, "
+        "and Co Pilot for helping me fix errors and bugs."
         )
 
         self.long_paragraph = tk.Text(self, height = controller.txt_box_height, 
@@ -777,6 +848,7 @@ class AboutMenu(tk.Frame):
                                     )
         self.long_paragraph2.insert(tk.END, self.long_text2)
         self.long_paragraph2.place(x=100, y=500, width=1000, height=200)
+
 
 if __name__ == "__main__":
     root = Game()

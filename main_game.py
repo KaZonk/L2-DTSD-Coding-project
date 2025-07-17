@@ -262,14 +262,14 @@ class GameMain(tk.Frame):
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
  
-                message = "You have achieved a Good ending! /n" \
+                message = "You have achieved a Good ending!" \
                             "Do you want to play again?"
                 self.reset_or_not(message)
                 
             elif self.controller.sanitary <= self.controller.bad_ending_points:
                 self.canvas.create_image(0, 0, image=self.bad_ending_bg,
                                         anchor='nw', tags="background")
-                message = "You have achieved a bad ending! \n" \
+                message = "You have achieved a bad ending!" \
                             "Do you want to play again?"
                 self.reset_or_not(message)
                 
@@ -412,13 +412,12 @@ class GameMain(tk.Frame):
         If they click yes, it resets the game and switch to GameMain."""
         self.wipe_all_rubbish()
         self.pause_game()
-        
+        self.game_over = True
         answer = mb.askyesno("Game Over", message, icon='info')
         if answer:
             self.reset_game() 
             self.controller.show_frame(GameMain)
         else:
-            self.game_over = True  # Set game_over to True
             self.controller.show_frame(MainPage)
             
 
@@ -472,6 +471,26 @@ class UpgradeMenu(tk.Frame):
                                         width=12, height=2)
         self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=105, y=425)
 
+        cleaner_1 = ImageTk.PhotoImage(
+                Image.open("Sprites/fish_friend_1.png")
+            )
+        cleaner_2 = ImageTk.PhotoImage(
+            Image.open("Sprites/fish_friend_2.png")
+        )
+        cleaner_3 = ImageTk.PhotoImage(
+            Image.open("Sprites/fish_friend_3.png")
+        )
+        cleaner_4 = ImageTk.PhotoImage(
+            Image.open("Sprites/fish_friend_4.png")
+        )
+        cleaner_5 = ImageTk.PhotoImage(
+            Image.open("Sprites/fish_friend_5.png")
+        )
+        cleaner_6 = ImageTk.PhotoImage(
+            Image.open("Sprites/fish_friend_6.png")
+        )
+        self.cleaner_sprites = [cleaner_1, cleaner_2, cleaner_3,
+                                cleaner_4, cleaner_5, cleaner_6]
         # Rubbish Delivery(money per click) money label and button
 
         self.rbd_lbl = tk.Label(self, text="Cost: $30",
@@ -563,9 +582,7 @@ class UpgradeMenu(tk.Frame):
             self.update_money()
 
             # Create cleaner sprite
-            cleaner_image = ImageTk.PhotoImage(
-                Image.open("Sprites/fish_friend_1.png")
-            )
+            cleaner_image = random.choice(self.cleaner_sprites)
             cleaner_sprite = self.controller.frames[GameMain].canvas.create_image(
                 random.randint(20, 1100), 500,
                 image=cleaner_image, anchor='nw'
@@ -575,6 +592,8 @@ class UpgradeMenu(tk.Frame):
             # Start moving and giving bonuses
             self.move_cleaner(cleaner_sprite)
             self.action_cleaner(cleaner_sprite)
+        else:
+            mb.showerror("Error", "You don't have enough money to hire a cleaner!")
 
     def move_cleaner(self, cleaner_sprite):
         """This function moves the cleaner sprite randomly around the canvas."""
@@ -609,9 +628,9 @@ class UpgradeMenu(tk.Frame):
             )
             self.controller.frames[GameMain].update_background()
 
-        # Schedule the next bonus
-        random_delay = random.randint(5000, 15000)
-        self.after(random_delay, lambda: self.action_cleaner(cleaner_sprite))
+            # Schedule the next bonus
+            random_delay = random.randint(5000, 15000)
+            self.after(random_delay, lambda: self.action_cleaner(cleaner_sprite))
 
 
     def upgrade_rubbish_delivery(self):

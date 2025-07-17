@@ -18,8 +18,9 @@ class Game(tk.Tk):
     MENU_BLUE = "#0cc0df" 
     TEXT_GOLD = "#dbae3c"
     BT_BLUE = "#004aad"
+    TITLE_PURPLE = "#4e2a84"
     # font
-    BT_FONT = ('Times', 24)
+    BT_FONT = ('Calibri', 22)
     text_font = ("Microsoft Sans Serif",30)
     place_holder_font = ("Helvetica", 16)
     description_font = ("Helvetica", 18)
@@ -140,9 +141,10 @@ class MainPage(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.main_bg_lbl.image = self.main_menu_bg  
 
-        label = tk.Label(self, text= "Ocean Clicker", font = ('Forte', 100),
+        label = tk.Label(self, text= "Ocean Clicker", 
+                         font = ('Courier', 80),
                          background=controller.MENU_BLUE, 
-                         fg=controller.TEXT_GOLD)
+                         fg=controller.TITLE_PURPLE)
         label.place(x=200, y=50)  
 
         # Button to exit the game
@@ -727,9 +729,9 @@ class SettingMenu(tk.Frame):
                                 )
         
         # Quality Button
-        self.quality = ["Low", "Medium", "High", "Super-High"]
+        self.quality = ["Medium", "High", "Super-High","Low"]
 
-        self.quality_bt = tk.Button(self, text="Low",
+        self.quality_bt = tk.Button(self, text=self.quality[0],
                                     command= self.update_quality, width=10,
                                     activebackground="gray",
                                     font=controller.text_font, 

@@ -44,10 +44,10 @@ class Game(tk.Tk):
         # they are often called in function within class.
         self.money = 100000
         self.sanitary = 0
-        self.money_per_click = 2
+        self.money_per_click = 5
         # For testing purposes, the Sanitary_per_click is 500, it should be like
         # 10 or something.
-        self.sanitary_per_click = 5
+        self.sanitary_per_click = 500
         self.sanitary_per_lost = -15
         self.bad_ending_points = -500
         self.good_ending_points = 1000
@@ -181,8 +181,8 @@ class MainPage(tk.Frame):
                 command=lambda page=page_class: controller.show_frame(page)
             )
             button.place(x=start_x, y=start_y + i * button_spacing)
-
-
+    
+    
 class GameMain(tk.Frame):
     """This is where the game will take place"""
 
@@ -397,6 +397,7 @@ class GameMain(tk.Frame):
     def reset_game(self):
         """This function resets the game by clearing all rubbish, resetting
         money and sanitary points, and updating the labels."""
+        self.game_over = False
         self.wipe_all_rubbish()
         self.controller.money = 0
         self.controller.sanitary = 0
@@ -404,9 +405,7 @@ class GameMain(tk.Frame):
         self.controller.sanitary_per_click = 2
         self.controller.frames[UpgradeMenu].update_money()
         self.sanitary_lbl.config(text="Sanitary: 0")
-        self.update_background()
         self.controller.frames[UpgradeMenu].reset_shop()
-        
         self.update_background()
     
     def reset_or_not(self,message):
@@ -418,9 +417,24 @@ class GameMain(tk.Frame):
         answer = mb.askyesno("Game Over", message, icon='info')
         if answer:
             self.reset_game() 
-            self.controller.show_frame(GameMain)
+            self.controller.show_frame(MainPage)
         else:
             self.controller.show_frame(MainPage)
+    
+    def particle(self):
+        pass
+    
+    def update_particle(self):
+        pass
+
+    def delete_particle(self):
+        pass
+
+    def clear_all_parti(self):
+        pass
+
+    def particle_setting(self):
+        pass
             
 
 class UpgradeMenu(tk.Frame):
@@ -493,6 +507,7 @@ class UpgradeMenu(tk.Frame):
         )
         self.cleaner_sprites = [cleaner_1, cleaner_2, cleaner_3,
                                 cleaner_4, cleaner_5, cleaner_6]
+
         # Rubbish Delivery(money per click) money label and button
 
         self.rbd_lbl = tk.Label(self, text="Cost: $30",
@@ -555,10 +570,23 @@ class UpgradeMenu(tk.Frame):
         )
     
     def reset_shop(self):
-        """Reset the shop state, including costs and labels."""
-        self.rbd_lbl.config(text="Cost: $1000")  
-        self.better_tool_lbl.config(text="Cost: $1000")  
-        self.hire_cleaner_lbl.config(text="Cost: $1000")
+        """Reset the shop state, including costs and labels.
+        And delete every cleaner sprite."""
+        self.rbd_lbl.config(text="Cost: $105")  
+        self.better_tool_lbl.config(text="Cost: $30")  
+        self.hire_cleaner_lbl.config(text="Cost: $30")
+        self.hc_lvl = 0
+        self.hc_lvl_lbl.config(text="Cleaner Level: 0")
+        self.rbd_lvl = 0
+        self.rbd_lvl_lbl.config(text="Disposer Level: 0")
+        self.tool_lvl = 0
+        self.tool_lvl_lbl.config(text="Tool Level: 0")
+        # Clear all cleaner sprites from the canvas
+        game_main_frame = self.controller.frames[GameMain]
+        for cleaner_sprite in game_main_frame.canvas.find_withtag("cleaner"):
+            game_main_frame.canvas.delete(cleaner_sprite)
+        # Clear the cleaner sprites list
+        self.cleaner_sprites.clear()
         self.update_money() 
         
     def update_money(self):
@@ -590,12 +618,15 @@ class UpgradeMenu(tk.Frame):
                 image=cleaner_image, anchor='nw'
             )
             cleaner_image.image = cleaner_image  # Prevent garbage collection
+            self.controller.frames[GameMain].canvas.addtag_withtag(
+                "cleaner", cleaner_sprite)
 
             # Start moving and giving bonuses
             self.move_cleaner(cleaner_sprite)
             self.action_cleaner(cleaner_sprite)
         else:
-            mb.showerror("Error", "You don't have enough money to hire a cleaner!")
+            mb.showerror("Error", 
+                        "You don't have enough money to hire a cleaner!")
 
     def move_cleaner(self, cleaner_sprite):
         """This function moves the cleaner sprite randomly around the canvas."""

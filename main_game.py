@@ -6,6 +6,7 @@ from tkinter import messagebox as mb
 import random
 from PIL import Image, ImageTk
 import pygame
+import math
 
 
 
@@ -190,14 +191,19 @@ class GameMain(tk.Frame):
         """In this GameMain, there are sub frame, button
         and to the shop menu and the label for each points system"""
         tk.Frame.__init__(self, parent)
+        # Define the attributes, flags and load the images.
         self.controller = controller
         self.parent = parent
         self.running = False
-        self.spawning_rubbish = False  # Flag to track rubbish spawning
-        self.spawning_rubbish_id = None  # To store the after ID
-        self.canvas = None  # Initialize canvas as None
+        self.spawning_rubbish = False 
+        self.spawning_rubbish_id = None  
+        self.canvas = None 
         self.game_over = False
-        self.load_background_images()  # Load images once
+        self.load_background_images()  
+
+
+
+
 
         # create a subframe to hold canvas
         sub_frame = tk.Frame(self)
@@ -205,7 +211,7 @@ class GameMain(tk.Frame):
         sub_frame.grid_rowconfigure(0, weight=1)  # For the canvas
         sub_frame.grid_columnconfigure(0, weight=1)
 
-        # Button switch to main menu
+        # Button switch to main menu at the top
         self.switch_window_button = tk.Button(
             self, text="Back to Main Menu", bg=self.controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
@@ -217,7 +223,7 @@ class GameMain(tk.Frame):
                                         x=-10, y=10
         )
 
-        # Button switch to Upgrademenu
+        # Button to Upgrademenu
         self.upgrade_menu_bt = tk.Button(
             self, text="Shop", bg="gray", 
             fg="black", activebackground="gray",
@@ -243,9 +249,16 @@ class GameMain(tk.Frame):
                                     font=controller.place_holder_font)
         self.sanitary_lbl.place(anchor="n", x=700, y=50)
 
-        self.rubbish_sprites = []  # List to hold rubbish sprites
+        # list to store rubbish sprites and bubble sprite
+        self.rubbish_sprites = [] 
+        self.bubbles = []  
+        self.bubbles_images = [] 
+
+        # this control the bubble spawning
+        self.check_quality_change_bubble()
 
         self.update_game()
+
 
     def load_background_images(self):
         """Load all background images."""
@@ -354,7 +367,6 @@ class GameMain(tk.Frame):
     def start_spawning_rubbish(self):
         """This function starts spawning 
         rubbish sprites at regular intervals."""  
-
         if self.game_over is False:
             self.running = True  # Start the game      
             self.spawn_rubbish()
@@ -407,7 +419,7 @@ class GameMain(tk.Frame):
         self.sanitary_lbl.config(text="Sanitary: 0")
         self.controller.frames[UpgradeMenu].reset_shop()
         self.update_background()
-    
+
     def reset_or_not(self,message):
         """This function ask the player if they want to reset or not.
         If they click yes, it resets the game and switch to GameMain."""
@@ -421,20 +433,63 @@ class GameMain(tk.Frame):
         else:
             self.controller.show_frame(MainPage)
     
-    def particle(self):
-        pass
+    def generate_bubbles(self):
+        """Generates bubbles at random positions on the canvas."""
+        max_bubbles = 10  # Change this to your preferred limit
+        if len(self.bubbles) >= max_bubbles:
+            return
+        # Pick from two ranges: 20-200 and 700-1100 for x, and 500-700 for y.
+        if random.choice([True, False]):
+            x = random.randint(20, 200)
+        else:
+            x = random.randint(700, 1100)
+        y = random.randint(500, 700)
+        bubble_image = ImageTk.PhotoImage(Image.open("Sprites/p_bubble.png"))
+        bubble_sprite = self.canvas.create_image(x, y, 
+                                                 image=bubble_image, anchor='nw')
+        bubble_image.image = bubble_image  # Prevent garbage collection
+        self.bubbles.append(bubble_sprite)
+        self.bubbles_images.append(bubble_image)
+        # Start animating
+        self.animate_bubbles()
     
-    def update_particle(self):
-        pass
+    def generate_bubble_periodically(self):
+        """Spawns a bubble every few seconds."""
+        if (self.game_over or not self.running or 
+            self.controller.frames[SettingMenu].quality[0] == "Disabled"):
+            return
+        self.generate_bubbles()
+        self.after(10000, self.generate_bubble_periodically)
+    
+    def animate_bubbles(self):
+        """This function animates the bubbles by moving them upwards."""
+        for bubble in self.bubbles:
+            coords = self.canvas.coords(bubble)
+            if coords[1] > 200:
+                self.canvas.move(bubble, 0, -0.4)
+            else:
+                # If bubble goes off screen, reset its position
+                new_x = random.randint(20, 1100)
+                self.canvas.coords(bubble, new_x, 700)
+        # Schedule the next bubble animation
+        self.after(100, self.animate_bubbles) 
+    
+    def wipe_all_bubbles(self):
+        """This function removes all bubble sprites from the canvas."""
+        for bubble in self.bubbles:
+            self.canvas.delete(bubble)
+        self.bubbles.clear()
+    
+    def check_quality_change_bubble(self):
+        """Checks the quality setting and updates bubbles accordingly."""
+        current_quality = self.controller.frames[SettingMenu].quality[0]
+        if (self.game_over or not self.running or current_quality == "Disabled"):
+            self.wipe_all_bubbles()
+        elif current_quality == "Enabled":
+            self.generate_bubble_periodically()
 
-    def delete_particle(self):
-        pass
+        self.after(1000, self.check_quality_change_bubble)
 
-    def clear_all_parti(self):
-        pass
-
-    def particle_setting(self):
-        pass
             
 
 class UpgradeMenu(tk.Frame):
@@ -596,7 +651,6 @@ class UpgradeMenu(tk.Frame):
         self.controller.frames[UpgradeMenu].money_lbl.config(
                                         text=f"Money: ${self.controller.money}")
 
-
     def upgrade_hire_cleaner(self):
         """This function inserts a cleaner sprite into the game, 
         which move around randomly and automatically collects rubbish 
@@ -665,7 +719,6 @@ class UpgradeMenu(tk.Frame):
             random_delay = random.randint(5000, 15000)
             self.after(random_delay, lambda: self.action_cleaner(cleaner_sprite))
 
-
     def upgrade_rubbish_delivery(self):
         cost = self.cost_calc(self.rbd_lvl, 'rbd')
         if self.controller.money >= cost:
@@ -695,16 +748,17 @@ class UpgradeMenu(tk.Frame):
             mb.showerror("Error", "You don't have enough money to upgrade!")
 
     def cost_calc(self, level, upgrade_type):
-        """Calculate the cost based on the level."""
+        """Calculate the cost based on the level using quadractic equations."""
         if upgrade_type == 'tool' or upgrade_type == 'rbd':
             c = 4 * (level)**2 + 34 * level + 30
         else:
             c = 5 * (level)**2 + 45 * level + 105
         return c
 
+
 class SettingMenu(tk.Frame):
     """This is the setting menu, where the player can change
-        sound and switch quality and also switch to main menu"""
+        sound and particle quality and also switch to main menu"""
     
     def __init__(self, parent, controller):
         """The setting menu have the following:
@@ -750,8 +804,8 @@ class SettingMenu(tk.Frame):
         self.volume_sld.place(in_=self.image_lbl, x=690, 
                          y=200, anchor="center")
         
-        # Quality label 
-        self.quality_lbl = tk.Label(self, text="Quality",
+        # Particle label 
+        self.quality_lbl = tk.Label(self, text="Particle",
                                 font=controller.text_font, 
                                 bg=controller.MENU_BLUE
                                     )
@@ -760,7 +814,7 @@ class SettingMenu(tk.Frame):
                                 )
         
         # Quality Button
-        self.quality = ["Medium", "High", "Super-High","Low"]
+        self.quality = ["Enabled", "Disabled"]
 
         self.quality_bt = tk.Button(self, text=self.quality[0],
                                     command= self.update_quality, width=10,
@@ -781,6 +835,7 @@ class SettingMenu(tk.Frame):
             command=lambda: controller.show_frame(MainPage)
         )
         self.switch_window_button.pack(side="top", anchor="ne")
+
 
 
     def update_volume_lbl(self, value):

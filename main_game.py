@@ -1,4 +1,8 @@
-"""The beginning of something beautiful or terrible"""
+"""This is a Clicker game, 
+where the player will click on rubbish to collect money and sanitary points.
+When the player collect enough points, they can upgrade their tools
+and hire cleaners to help them collect rubbish. Moreover, the player can
+achieve the good and bad ending by reaching a certain sanitary value."""
 
 # Importing libraries
 import tkinter as tk
@@ -7,8 +11,6 @@ import random
 from PIL import Image, ImageTk
 import pygame
 import math
-
-
 
 
 class Game(tk.Tk):
@@ -25,36 +27,31 @@ class Game(tk.Tk):
     text_font = ("Microsoft Sans Serif",30)
     place_holder_font = ("Helvetica", 16)
     description_font = ("Helvetica", 18)
-    # position for widgets
-    txt_box_height = 12
-    txt_box_width = 125
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         """using the innit function create the necesserary
         widgets when the class 'Game' is called"""
 
-        
+        # Setting the title, geometry and resizable properties for window
         self.wm_title("Clicker game")
         self.wm_geometry("1200x800")
-        self.resizable(False, False) # Disable resizing
+        self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        # Initialize the pygame mixer
         pygame.mixer.init()
         
         # These are in-game varible, they can change and
         # they are often called in function within class.
-        self.money = 100000
+        self.money = 0
         self.sanitary = 0
         self.money_per_click = 5
-        # For testing purposes, the Sanitary_per_click is 500, it should be like
-        # 10 or something.
-        self.sanitary_per_click = 500
+        self.sanitary_per_click = 10
         self.sanitary_per_lost = -15
         self.bad_ending_points = -500
         self.good_ending_points = 1000
         self.fall_speed = 10
-
-        # just so it doesn't have any name at the start.
         self.current_frame_name = None
 
         # creating a container as a frame.
@@ -66,12 +63,12 @@ class Game(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         # Create a dictionary of Frames.
-        pg_class_list = [MainPage, SettingMenu, HelpMenu, 
+        frame_classes = [MainPage, SettingMenu, HelpMenu, 
                          AboutMenu, GameMain, UpgradeMenu,
                          ]
         self.frames = {}
 
-        for F in pg_class_list:
+        for F in frame_classes:
             """Using a for loop to call the classes as a frame
             and then assign to an object."""
             frame = F(container, self)
@@ -80,8 +77,7 @@ class Game(tk.Tk):
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky='nsew')
 
-        # Calling a function to switch page
-        # and also let the main page be first.
+        # Show the Mainpage and play music
         self.show_frame(MainPage)
         self.start_music()
     
@@ -91,13 +87,11 @@ class Game(tk.Tk):
         pygame.mixer.music.play(loops=-1)
         pygame.mixer.music.set_volume(0.3)  # Set volume to 30%
 
-
     def show_frame(self, controller):
         """This function finds the frame in the dictionary 
         and raises it to the top."""        
         frame = self.frames[controller]
         frame.tkraise()
-
         self.current_frame = frame
         self.current_frame_name = controller  # Track name of current page
 
@@ -123,8 +117,6 @@ class MainPage(tk.Frame):
     def __init__(self, parent, controller):
         #intialise the class as a frame
         tk.Frame.__init__(self, parent) 
-        # this also be super().__init__(parent) 
-        # but it can be considered in the future.
         """The MainPage have the following:"""
 
         # Store the controller as an instance attribute, so that it can be used
@@ -185,7 +177,7 @@ class MainPage(tk.Frame):
     
     
 class GameMain(tk.Frame):
-    """This is where the game will take place"""
+    """This is the GameMain, where the player will play the game."""
 
     def __init__(self, parent, controller):
         """In this GameMain, there are sub frame, button
@@ -208,36 +200,33 @@ class GameMain(tk.Frame):
         # create a subframe to hold canvas
         sub_frame = tk.Frame(self)
         sub_frame.pack(side="top", fill="both", expand=True)
-        sub_frame.grid_rowconfigure(0, weight=1)  # For the canvas
+        sub_frame.grid_rowconfigure(0, weight=1) 
         sub_frame.grid_columnconfigure(0, weight=1)
 
-        # Button switch to main menu at the top
+        # Button switch to main menu at the top-right corner.
         self.switch_window_button = tk.Button(
             self, text="Back to Main Menu", bg=self.controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
             font=controller.text_font,
             command=lambda: controller.show_frame(MainPage)
         )
-        # Use place for precise positioning at the top-right corner
         self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
                                         x=-10, y=10
         )
 
-        # Button to Upgrademenu
+        # Button to Upgrademenu, positioning at the right.
         self.upgrade_menu_bt = tk.Button(
             self, text="Shop", bg="gray", 
             fg="black", activebackground="gray",
             font=controller.text_font,
             command=lambda: controller.show_frame(UpgradeMenu)
         )
-        # Use place for precise positioning at the right
         self.upgrade_menu_bt.place(relx=1.0, rely=0.5, anchor="ne", x=-10, y=0
         )
 
-        # Create canvas for image and Keep a reference 
+        # Create canvas for image and Keep a reference .
         self.canvas = tk.Canvas(sub_frame, width=1200, height=800)
         self.canvas.pack(fill="both", expand=True)
-        self.update_background()  # Update canvas background
 
         # Money label.
         self.money_lbl = tk.Label(self, text= f"Money: ${self.controller.money}", 
@@ -256,7 +245,8 @@ class GameMain(tk.Frame):
 
         # this control the bubble spawning
         self.check_quality_change_bubble()
-
+        
+        self.update_background()  
         self.update_game()
 
 
@@ -271,21 +261,20 @@ class GameMain(tk.Frame):
 
     def update_background(self):
         """Update the canvas background based on sanitary points."""
-
         if self.canvas and self.game_over is False: 
             if self.controller.sanitary >= self.controller.good_ending_points:
                 self.canvas.create_image(0, 0, image=self.good_ending_bg, 
                                          anchor='nw', tags="background")
  
                 message = "You have achieved a Good ending!" \
-                            "Do you want to play again?"
+                            " Do you want to play again?"
                 self.reset_or_not(message)
                 
             elif self.controller.sanitary <= self.controller.bad_ending_points:
                 self.canvas.create_image(0, 0, image=self.bad_ending_bg,
                                         anchor='nw', tags="background")
                 message = "You have achieved a bad ending!" \
-                            "Do you want to play again?"
+                            " Do you want to play again?"
                 self.reset_or_not(message)
                 
             else:
@@ -296,7 +285,7 @@ class GameMain(tk.Frame):
     def update_game(self):
         """This function updates the game by moving
         the rubbish until it reaches a random y coordinate assigned
-        then after 8 seconds it removes the rubbish sprite"""
+        then after 5 seconds it removes the rubbish sprite"""
         if self.running and self.game_over is False:
             # Move Rubbish down
             for sprite, image in self.rubbish_sprites:
@@ -305,13 +294,14 @@ class GameMain(tk.Frame):
                 if coords[1] <= y_collision:
                     self.canvas.move(sprite, 0, self.controller.fall_speed)
                 elif coords[1] >= y_collision and coords[1] < y_collision+10: 
-                    self.after(8000, lambda s=sprite: self.remove_rubbish(s))
+                    self.after(5000, lambda s=sprite: self.remove_rubbish(s))
                     self.canvas.coords(sprite, coords[0], y_collision+10) 
         self.after(50, self.update_game)
 
     def spawn_rubbish(self):
         """This function spawn rubbish sprite at random x coordinates
-        and bind a click event to it with a lambda function"""
+        at top of the canvas. Then it bind it to a click event so that 
+        it can be interacted with by the player."""
 
         x = random.randint(20, 1100)  # Random x position for rubbish entities
         rubbish_image1 = ImageTk.PhotoImage(
@@ -329,24 +319,24 @@ class GameMain(tk.Frame):
         rubbish_image = random.choice([rubbish_image1, rubbish_image2, 
                                         rubbish_image3, rubbish_image4,
                                         rubbish_image5])
-
         sprite = self.canvas.create_image(x, 0, image=rubbish_image, 
                                         anchor='nw')
+
         # Ensure the sprite is not garbage collected by keeping a reference
         rubbish_image.image = rubbish_image
         # Store the sprite and image reference
         self.rubbish_sprites.append((sprite, rubbish_image))
 
         # Bind click event to the rubbish sprite 
-        # (e represent the even the object pass with tag_bind).
         self.canvas.tag_bind(sprite, "<Button-1>",
                              lambda e, s=sprite: self.hit_rubbish(s))
 
     def hit_rubbish(self, sprite):
-        """Handle rubbish click: remove it and give money."""
+        """This function check if the sprite is in the rubbish_sprites list,
+        if it is then remove it and give money and sanitary points."""
         if sprite in [s[0] for s in self.rubbish_sprites]:
-            """This if statement check if the spirte exist in the list
-            then remove it and give money."""
+            """This if statement check if the sprite exist in the list
+            then remove it, play the sound once and give the money."""
             hit_sound = pygame.mixer.Sound(
                                         "music/sound_effect/collecting_se.wav")
             hit_sound.play(loops=0)  
@@ -366,7 +356,7 @@ class GameMain(tk.Frame):
 
     def start_spawning_rubbish(self):
         """This function starts spawning 
-        rubbish sprites at regular intervals."""  
+        rubbish sprites at 3 seconds intervals."""  
         if self.game_over is False:
             self.running = True  # Start the game      
             self.spawn_rubbish()
@@ -386,11 +376,11 @@ class GameMain(tk.Frame):
 
     def pause_game(self):
         """Pause the game and stop spawning rubbish."""        
-        self.running = False  # Pause the game.
-        if self.spawning_rubbish_id:  # Cancel scheduled rubbish spawning
+        self.running = False  
+        if self.spawning_rubbish_id: 
             self.after_cancel(self.spawning_rubbish_id)
             self.spawning_rubbish_id = None
-        self.spawning_rubbish = False  # Stop spawning rubbish
+        self.spawning_rubbish = False
 
     def resume_game(self):
         """Resume the game and start spawning rubbish if not already running."""        
@@ -413,8 +403,8 @@ class GameMain(tk.Frame):
         self.wipe_all_rubbish()
         self.controller.money = 0
         self.controller.sanitary = 0
-        self.controller.money_per_click = 2
-        self.controller.sanitary_per_click = 2
+        self.controller.money_per_click = 5
+        self.controller.sanitary_per_click = 10
         self.controller.frames[UpgradeMenu].update_money()
         self.sanitary_lbl.config(text="Sanitary: 0")
         self.controller.frames[UpgradeMenu].reset_shop()
@@ -434,8 +424,9 @@ class GameMain(tk.Frame):
             self.controller.show_frame(MainPage)
     
     def generate_bubbles(self):
-        """Generates bubbles at random positions on the canvas."""
-        max_bubbles = 10  # Change this to your preferred limit
+        """Generates bubbles at random positions on the canvas with the maximum
+        of 5 bubbles at a time. The bubbles will be animated to move upwards."""
+        max_bubbles = 5  
         if len(self.bubbles) >= max_bubbles:
             return
         # Pick from two ranges: 20-200 and 700-1100 for x, and 500-700 for y.
@@ -454,7 +445,7 @@ class GameMain(tk.Frame):
         self.animate_bubbles()
     
     def generate_bubble_periodically(self):
-        """Spawns a bubble every few seconds."""
+        """Spawns a bubble every few seconds if particle quality is enabled."""
         if (self.game_over or not self.running or 
             self.controller.frames[SettingMenu].quality[0] == "Disabled"):
             return
@@ -462,7 +453,8 @@ class GameMain(tk.Frame):
         self.after(10000, self.generate_bubble_periodically)
     
     def animate_bubbles(self):
-        """This function animates the bubbles by moving them upwards."""
+        """This function animates the bubbles by moving them upwards and handle
+        them if they move off screen."""
         for bubble in self.bubbles:
             coords = self.canvas.coords(bubble)
             if coords[1] > 200:
@@ -475,7 +467,8 @@ class GameMain(tk.Frame):
         self.after(100, self.animate_bubbles) 
     
     def wipe_all_bubbles(self):
-        """This function removes all bubble sprites from the canvas."""
+        """This function removes all bubble sprites by clearing
+        the list and deleting each bubble sprite."""
         for bubble in self.bubbles:
             self.canvas.delete(bubble)
         self.bubbles.clear()
@@ -493,8 +486,9 @@ class GameMain(tk.Frame):
             
 
 class UpgradeMenu(tk.Frame):
+    """UpgradeMenu is the menu where the player can upgrade their tools,"""
     def __init__(self, parent, controller):
-        """This is the UpgradeMenu, where the player can upgrade"""
+        """Intialise the Upgrade menu"""
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
@@ -542,6 +536,7 @@ class UpgradeMenu(tk.Frame):
                                         width=12, height=2)
         self.hire_cleaner_bt.place(in_=self.shop_bg_bg_lbl, x=105, y=425)
 
+        # Load cleaner sprites
         cleaner_1 = ImageTk.PhotoImage(
                 Image.open("Sprites/fish_friend_1.png")
             )
@@ -645,7 +640,7 @@ class UpgradeMenu(tk.Frame):
         self.update_money() 
         
     def update_money(self):
-        """Update the money label in the UpgradeMenu."""
+        """Update the money label in the UpgradeMenu and Gamemain."""
         self.controller.frames[GameMain].money_lbl.config(
                                         text=f"Money: ${self.controller.money}")
         self.controller.frames[UpgradeMenu].money_lbl.config(
@@ -653,8 +648,9 @@ class UpgradeMenu(tk.Frame):
 
     def upgrade_hire_cleaner(self):
         """This function inserts a cleaner sprite into the game, 
-        which move around randomly and automatically collects rubbish 
-        and increases the money per click."""
+        which move around randomly and automatically give the player
+        sanitary and money."""
+        # cost and check player's money.
         cost = self.cost_calc(self.hc_lvl, 'cleaner')
         if self.controller.money >= cost:
             self.controller.money -= cost
@@ -671,7 +667,7 @@ class UpgradeMenu(tk.Frame):
                 random.randint(20, 1100), 500,
                 image=cleaner_image, anchor='nw'
             )
-            cleaner_image.image = cleaner_image  # Prevent garbage collection
+            cleaner_image.image = cleaner_image  # Prevent garbage collection.
             self.controller.frames[GameMain].canvas.addtag_withtag(
                 "cleaner", cleaner_sprite)
 
@@ -702,8 +698,8 @@ class UpgradeMenu(tk.Frame):
             self.after(500, lambda: self.move_cleaner(cleaner_sprite))
 
     def action_cleaner(self, cleaner_sprite):
-        """Cleaner will randomly clean for player. Update the money and sanitary
-        while doing it."""
+        """Cleaner will randomly 'clean' for player. Update the money
+        and sanitary while doing it."""
         if not self.controller.frames[GameMain].game_over:
             money_bonus = random.randint(5, 10)
             sanitary_bonus = random.randint(2, 10)
@@ -757,14 +753,12 @@ class UpgradeMenu(tk.Frame):
 
 
 class SettingMenu(tk.Frame):
-    """This is the setting menu, where the player can change
-        sound and particle quality and also switch to main menu"""
+    """The setting menu have the following:
+        background, volume slider and particle quality and
+        button to return to main menu."""
     
     def __init__(self, parent, controller):
-        """The setting menu have the following:
-        background, volume slider and buttons to switch quality
-        button to return to main menu."""
-
+        """Intialise the Setting menu"""
         tk.Frame.__init__(self, parent)
 
         # Load the background.
@@ -785,7 +779,7 @@ class SettingMenu(tk.Frame):
         self.volume_lbl.place(in_=self.image_lbl, x=380, 
                          y=200, anchor="center")
         
-        self.volume_lbl2 = tk.Label(self, text="50%", font=controller.text_font, 
+        self.volume_lbl2 = tk.Label(self, text="30%", font=controller.text_font, 
                               bg=controller.MENU_BLUE
                               )
         self.volume_lbl2.place(in_=self.image_lbl, x=900, 
@@ -847,12 +841,11 @@ class SettingMenu(tk.Frame):
     
 
     def update_quality(self):
-        """This function updates the quality value"""
-        # Get the first element of the list
+        """This function updates the quality value, by getting the first
+        element of the list, popping it and appending it to the end of the list.
+        Then update the button text."""
         text = self.quality.pop(0)
-        # Put it at the end of the list
         self.quality.append(text)
-        # Configure the button's text
         self.quality_bt.config(text=self.quality[0])
 
 
@@ -875,6 +868,38 @@ class HelpMenu(tk.Frame):
         # Keep a reference to prevent garbage collection
         self.help_img_lbl.image = self.help_menu_bg
 
+        self.instruction_text = (
+        "In Ocean Clicker, you're the cleaner of The Fish Civilization's "
+        "in the ocean. Your task is to keep the Coral Reef clean by "
+        "clicking on rubbishes. You are paid for the amount of rubbish "
+        "you pick up. Get the Coral Reef to 1000 Sanitation and the fish lives "
+        "happily over after! "
+        "However, leaving the Reef dirty will result in serious consequences "
+        )
+
+        self.instruction1 = tk.Text(self, height = 12, 
+                                      width = 125, 
+                                      font=controller.description_font,
+                                      bg=controller.MENU_BLUE, wrap='word',
+                                      highlightthickness=0, borderwidth=0
+                                        )
+        self.instruction1.insert(tk.END, self.instruction_text)
+        self.instruction1.place(x=75, y=200, width=750, height=150)
+
+        self.instruction2_text = (
+        "Upgrade tools, disposer system and even hire cleaners "
+        "and clean the Reef more thoroughly. Click on Start Game to play, "
+        "click on rubbish to collect them!"
+        )
+        self.instruction2 = tk.Text(self, height = 12,
+                                        width = 125, 
+                                        font=controller.description_font,
+                                        bg='#b1b6a8', wrap='word',
+                                        highlightthickness=0, borderwidth=0
+                                            )
+        self.instruction2.insert(tk.END, self.instruction2_text)
+        self.instruction2.place(x=350, y=560, width=700, height=100)
+
 
         # Button switch to main menu
         self.switch_window_button = tk.Button(
@@ -883,7 +908,9 @@ class HelpMenu(tk.Frame):
             font=controller.text_font,
             command=lambda: controller.show_frame(MainPage)
         )
-        self.switch_window_button.pack(side="top", anchor="ne")
+        self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
+                                        x=-10, y=10
+        )
 
 
 class AboutMenu(tk.Frame):
@@ -906,12 +933,11 @@ class AboutMenu(tk.Frame):
         self.about_img_lbl.image = self.about_menu_bg
 
         # Button switch to main menu
-        # Button switch to GameMain
         self.switch_window_button = tk.Button(
-            self, text="Back to Game", bg=controller.BT_BLUE, 
+            self, text="Back to Main Menu", bg=controller.BT_BLUE, 
             fg=controller.TEXT_GOLD, activebackground="gray",
             font=controller.text_font,
-            command=lambda: controller.show_frame(GameMain)
+            command=lambda: controller.show_frame(MainPage)
         )
         # Use place for precise positioning at the top-right corner
         self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
@@ -928,13 +954,14 @@ class AboutMenu(tk.Frame):
         "and Co Pilot for helping me fix errors and bugs."
         )
 
-        self.long_paragraph = tk.Text(self, height = controller.txt_box_height, 
-                                      width = controller.txt_box_width, 
+        self.long_paragraph = tk.Text(self, height = 12, 
+                                      width = 125, 
                                       font=controller.description_font,
-                                      bg='#cfb792', wrap='word' 
+                                      bg='#cfb792', wrap='word',
+                                      highlightthickness=0, borderwidth=0
                                         )
         self.long_paragraph.insert(tk.END, self.long_text)
-        self.long_paragraph.place(x=100, y=100, width=1000, height=200)
+        self.long_paragraph.place(x=100, y=200, width=1000, height=200)
 
         # Second Paragraph
         self.long_text2 = (
@@ -948,10 +975,11 @@ class AboutMenu(tk.Frame):
         "Ad litora torquent per conubia nostra inceptos himenaeos."
         )
 
-        self.long_paragraph2 = tk.Text(self, height = controller.txt_box_height, 
-                                      width = controller.txt_box_width, 
+        self.long_paragraph2 = tk.Text(self, height = 12, 
+                                      width = 125, 
                                       font=controller.description_font,
-                                      bg='#ae8f60', wrap='word' 
+                                      bg='#ae8f60', wrap='word',
+                                      highlightthickness=0, borderwidth=0
                                     )
         self.long_paragraph2.insert(tk.END, self.long_text2)
         self.long_paragraph2.place(x=100, y=500, width=1000, height=200)

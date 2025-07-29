@@ -6,17 +6,17 @@ achieve the good and bad ending by reaching a certain sanitary value."""
 
 # Importing libraries
 import tkinter as tk
-from tkinter import messagebox as mb
 import random
+import math
+from tkinter import messagebox as mb
 from PIL import Image, ImageTk
 import pygame
-import math
+
 
 
 class Game(tk.Tk):
     """Initilising Main window as a class"""
-    
-    #These varible are to be use in the class itself and they are not changable
+    #These varible are used to define the colours, fonts and other constants
     # colours
     MENU_BLUE = "#0cc0df" 
     TEXT_GOLD = "#dbae3c"
@@ -24,14 +24,16 @@ class Game(tk.Tk):
     TITLE_PURPLE = "#4e2a84"
     # font
     BT_FONT = ('Calibri', 22)
-    text_font = ("Microsoft Sans Serif",30)
+    text_font = ("Microsoft Sans Serif", 30)
     place_holder_font = ("Helvetica", 16)
     description_font = ("Helvetica", 18)
 
     def __init__(self, *args, **kwargs):
+        """This function initializes the main window, sets the title, 
+        geometry, and sets the protocol for closing the window and
+        define ingame varibles."""
         tk.Tk.__init__(self, *args, **kwargs)
-        """using the innit function create the necesserary
-        widgets when the class 'Game' is called"""
+        
 
         # Setting the title, geometry and resizable properties for window
         self.wm_title("Clicker game")
@@ -43,7 +45,7 @@ class Game(tk.Tk):
         pygame.mixer.init()
         
         # These are in-game varible, they can change and
-        # they are often called in function within class.
+        # are often used in function within class.
         self.money = 0
         self.sanitary = 0
         self.money_per_click = 5
@@ -54,7 +56,7 @@ class Game(tk.Tk):
         self.fall_speed = 10
         self.current_frame_name = None
 
-        # creating a container as a frame.
+        # Creating a container as a frame.
         container = tk.Frame(self, height=1200, width=800)
         container.pack(side="top", fill="both", expand=True)
 
@@ -65,15 +67,14 @@ class Game(tk.Tk):
         # Create a dictionary of Frames.
         frame_classes = [MainPage, SettingMenu, HelpMenu, 
                          AboutMenu, GameMain, UpgradeMenu,
-                         ]
+                        ]
         self.frames = {}
 
         for F in frame_classes:
-            """Using a for loop to call the classes as a frame
-            and then assign to an object."""
-            frame = F(container, self)
+            """This for loop creates a frame for each class in the list,
+            and store it in the frames dictionary with the class as the key."""
 
-            # the Game class act as the root window for the frames.
+            frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky='nsew')
 
@@ -88,7 +89,7 @@ class Game(tk.Tk):
         pygame.mixer.music.set_volume(0.3)  # Set volume to 30%
 
     def show_frame(self, controller):
-        """This function finds the frame in the dictionary 
+        """This function open the frame, by finding the frame in the dictionary 
         and raises it to the top."""        
         frame = self.frames[controller]
         frame.tkraise()
@@ -115,9 +116,9 @@ class MainPage(tk.Frame):
     this contain the title, and acess to Setting, Help, About and the play
     button"""
     def __init__(self, parent, controller):
-        #intialise the class as a frame
+        """This function initializes the MainPage, sets the background,
+        title, exit button and buttons to switch frames."""
         tk.Frame.__init__(self, parent) 
-        """The MainPage have the following:"""
 
         # Store the controller as an instance attribute, so that it can be used
         # in the MainGame class method.
@@ -161,12 +162,12 @@ class MainPage(tk.Frame):
         # Starting position for buttons
         start_x = 500
         start_y = 300
-        button_spacing = 125  # Space between buttons
+        button_spacing = 125 
 
         for i, (page_name, page_class) in enumerate(pages.items()):
-            """This for loop uses the dictionary to create buttons,
-            It switches frames by calling the show_frame method
-            with a lambda function."""
+            """This for loop creates a button for each page in the 
+            pages dictionary, and places it at the specified 
+            position with a spacing.""" 
             button = tk.Button(
                 self, text=page_name, font=controller.BT_FONT, 
                 bg=controller.BT_BLUE, activebackground=controller.MENU_BLUE,
@@ -183,6 +184,7 @@ class GameMain(tk.Frame):
         """In this GameMain, there are sub frame, button
         and to the shop menu and the label for each points system"""
         tk.Frame.__init__(self, parent)
+
         # Define the attributes, flags and load the images.
         self.controller = controller
         self.parent = parent
@@ -192,10 +194,6 @@ class GameMain(tk.Frame):
         self.canvas = None 
         self.game_over = False
         self.load_background_images()  
-
-
-
-
 
         # create a subframe to hold canvas
         sub_frame = tk.Frame(self)
@@ -243,7 +241,7 @@ class GameMain(tk.Frame):
         self.bubbles = []  
         self.bubbles_images = [] 
 
-        # this control the bubble spawning
+        # Control the bubble spawning.
         self.check_quality_change_bubble()
         
         self.update_background()  
@@ -425,8 +423,8 @@ class GameMain(tk.Frame):
     
     def generate_bubbles(self):
         """Generates bubbles at random positions on the canvas with the maximum
-        of 5 bubbles at a time. The bubbles will be animated to move upwards."""
-        max_bubbles = 5  
+        of 6 bubbles at a time. The bubbles will be animated to move upwards."""
+        max_bubbles = 6
         if len(self.bubbles) >= max_bubbles:
             return
         # Pick from two ranges: 20-200 and 700-1100 for x, and 500-700 for y.
@@ -486,15 +484,14 @@ class GameMain(tk.Frame):
             
 
 class UpgradeMenu(tk.Frame):
-    """UpgradeMenu is the menu where the player can upgrade their tools,"""
+    """UpgradeMenu is the menu where the player can buy upgrades in order
+    to complete task faster and more efficiently."""
     def __init__(self, parent, controller):
-        """Intialise the Upgrade menu"""
+        """This function initializes the UpgradeMenu, sets the background,
+        creates labels and buttons for hiring cleaners, upgrading rubbish
+        disposer, and better tools. It also includes a button to switch back"""
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
-        # Title
-        label = tk.Label(self, text="Upgrade Menu")
-        label.pack(padx=10, pady=10)
 
         # Load the background.
         self.shop_bg = Image.open("Sprites/shop_menu_bg.png")
@@ -538,27 +535,21 @@ class UpgradeMenu(tk.Frame):
 
         # Load cleaner sprites
         cleaner_1 = ImageTk.PhotoImage(
-                Image.open("Sprites/fish_friend_1.png")
-            )
+                                        Image.open("Sprites/fish_friend_1.png"))
         cleaner_2 = ImageTk.PhotoImage(
-            Image.open("Sprites/fish_friend_2.png")
-        )
+                                        Image.open("Sprites/fish_friend_2.png"))
         cleaner_3 = ImageTk.PhotoImage(
-            Image.open("Sprites/fish_friend_3.png")
-        )
+                                        Image.open("Sprites/fish_friend_3.png"))
         cleaner_4 = ImageTk.PhotoImage(
-            Image.open("Sprites/fish_friend_4.png")
-        )
+                                        Image.open("Sprites/fish_friend_4.png"))
         cleaner_5 = ImageTk.PhotoImage(
-            Image.open("Sprites/fish_friend_5.png")
-        )
+                                        Image.open("Sprites/fish_friend_5.png"))
         cleaner_6 = ImageTk.PhotoImage(
-            Image.open("Sprites/fish_friend_6.png")
-        )
+                                        Image.open("Sprites/fish_friend_6.png"))
         self.cleaner_sprites = [cleaner_1, cleaner_2, cleaner_3,
                                 cleaner_4, cleaner_5, cleaner_6]
 
-        # Rubbish Delivery(money per click) money label and button
+        # Rubbish Disposer(money per click) label and upgrade button
 
         self.rbd_lbl = tk.Label(self, text="Cost: $30",
                                         font=controller.place_holder_font, 
@@ -716,6 +707,8 @@ class UpgradeMenu(tk.Frame):
             self.after(random_delay, lambda: self.action_cleaner(cleaner_sprite))
 
     def upgrade_rubbish_delivery(self):
+        """This function upgrades the rubbish disposer, which increases the money
+        per click and update the cost for the next upgrade level."""
         cost = self.cost_calc(self.rbd_lvl, 'rbd')
         if self.controller.money >= cost:
             self.controller.money -= cost
@@ -746,10 +739,10 @@ class UpgradeMenu(tk.Frame):
     def cost_calc(self, level, upgrade_type):
         """Calculate the cost based on the level using quadractic equations."""
         if upgrade_type == 'tool' or upgrade_type == 'rbd':
-            c = 4 * (level)**2 + 34 * level + 30
+            cost = 4 * (level)**2 + 34 * level + 30
         else:
-            c = 5 * (level)**2 + 45 * level + 105
-        return c
+            cost = 5 * (level)**2 + 45 * level + 105
+        return cost
 
 
 class SettingMenu(tk.Frame):
@@ -850,7 +843,12 @@ class SettingMenu(tk.Frame):
 
 
 class HelpMenu(tk.Frame):
+    """This is the Help menu, where the player can read about the game, if 
+    they're stuck on what to do."""
     def __init__(self, parent, controller):
+        """This function initializes the HelpMenu, sets the background,
+        creates labels for instructions, and includes a button to switch back
+        to the main menu."""
         tk.Frame.__init__(self, parent)
         
         # title of setting
@@ -877,28 +875,31 @@ class HelpMenu(tk.Frame):
         "However, leaving the Reef dirty will result in serious consequences "
         )
 
-        self.instruction1 = tk.Text(self, height = 12, 
-                                      width = 125, 
+        self.instruction1 = tk.Text(self, height = 12, width = 125, 
                                       font=controller.description_font,
                                       bg=controller.MENU_BLUE, wrap='word',
+                                      state='normal', 
                                       highlightthickness=0, borderwidth=0
                                         )
         self.instruction1.insert(tk.END, self.instruction_text)
         self.instruction1.place(x=75, y=200, width=750, height=150)
 
         self.instruction2_text = (
+        "Click on falling rubbish to collect them, giving you money and sanitary "
+        "When you have enough money, click on the 'Shop' button to buy upgrades. "
         "Upgrade tools, disposer system and even hire cleaners "
-        "and clean the Reef more thoroughly. Click on Start Game to play, "
-        "click on rubbish to collect them!"
+        "and clean the Reef more thoroughly. "
+        "When you're ready, you can start the game by clicking on "
+        "the 'Play' button on the main menu. "
         )
-        self.instruction2 = tk.Text(self, height = 12,
-                                        width = 125, 
+        self.instruction2 = tk.Text(self, height = 12, width = 125, 
                                         font=controller.description_font,
-                                        bg='#b1b6a8', wrap='word',
-                                        highlightthickness=0, borderwidth=0
-                                            )
+                                        bg='#b1b6a8', wrap='word', 
+                                        state='normal', highlightthickness=0,
+                                        borderwidth=0
+                                    )
         self.instruction2.insert(tk.END, self.instruction2_text)
-        self.instruction2.place(x=350, y=560, width=700, height=100)
+        self.instruction2.place(x=350, y=560, width=700, height=200)
 
 
         # Button switch to main menu
@@ -914,7 +915,9 @@ class HelpMenu(tk.Frame):
 
 
 class AboutMenu(tk.Frame):
+    """This is the About menu, where the player can read about the game,"""
     def __init__(self, parent, controller):
+        """This function initializes the AboutMenu, sets the background,"""
         tk.Frame.__init__(self, parent)
         
         # title of setting
@@ -947,39 +950,36 @@ class AboutMenu(tk.Frame):
 
         # First Paragraph
         self.long_text = (
-        "This game was created by Kane,"
-        "The art was created by me on Canva, music was basic stock sound effect"
+        "This game was created by K. "
+        "The art was created by me on Canva, music was basic stock sound effect "
         "from www.freesound.org. The coding was done by me but I'd like "
         "to thank my teacher, Mrs S. and many random forum on stack exchange, "
-        "and Co Pilot for helping me fix errors and bugs."
+        "and Co Pilot for helping me fix errors and bugs. "
         )
 
-        self.long_paragraph = tk.Text(self, height = 12, 
-                                      width = 125, 
+        self.long_paragraph = tk.Text(self, height = 12, width = 125, 
                                       font=controller.description_font,
-                                      bg='#cfb792', wrap='word',
-                                      highlightthickness=0, borderwidth=0
-                                        )
+                                      bg='#cfb792', wrap='word', 
+                                      state='normal', highlightthickness=0,
+                                    borderwidth=0
+                                    )
         self.long_paragraph.insert(tk.END, self.long_text)
         self.long_paragraph.place(x=100, y=200, width=1000, height=200)
 
         # Second Paragraph
         self.long_text2 = (
-        "Lorem ipsum dolor sit amet consectetur adipiscing elit. "
-        "Quisque faucibus ex sapien vitae pellentesque sem placerat. "
-        "In id cursus mi pretium tellus duis convallis. "
-        "Tempus leo eu aenean sed diam urna tempor. "
-        "Pulvinar vivamus fringilla lacus nec metus bibendum egestas. "
-        "Iaculis massa nisl malesuada lacinia integer nunc posuere. "
-        "Ut hendrerit semper vel class aptent taciti sociosqu. "
-        "Ad litora torquent per conubia nostra inceptos himenaeos."
+        "This game is a simple clicker game where you play as a cleaner "
+        "of the ocean, your task is to clean up the ocean by clicking on "
+        "rubbish and collecting money. The game is a fun way to learn about "
+        "the importance of keeping our oceans clean and the impact "
+        "of pollution on marine life. I hope you enjoy playing this game "
         )
 
-        self.long_paragraph2 = tk.Text(self, height = 12, 
-                                      width = 125, 
+        self.long_paragraph2 = tk.Text(self, height = 12, width = 125, 
                                       font=controller.description_font,
-                                      bg='#ae8f60', wrap='word',
-                                      highlightthickness=0, borderwidth=0
+                                      bg='#ae8f60', wrap='word', 
+                                      state='normal', highlightthickness=0, 
+                                      borderwidth=0
                                     )
         self.long_paragraph2.insert(tk.END, self.long_text2)
         self.long_paragraph2.place(x=100, y=500, width=1000, height=200)

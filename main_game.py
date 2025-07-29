@@ -900,6 +900,10 @@ class HelpMenu(tk.Frame):
                                     )
         self.instruction2.insert(tk.END, self.instruction2_text)
         self.instruction2.place(x=350, y=560, width=700, height=200)
+        
+        # Disable the text widgets to prevent editing
+        self.instruction1.config(state=tk.DISABLED)
+        self.instruction2.config(state=tk.DISABLED)
 
 
         # Button switch to main menu
@@ -983,6 +987,10 @@ class AboutMenu(tk.Frame):
                                     )
         self.long_paragraph2.insert(tk.END, self.long_text2)
         self.long_paragraph2.place(x=100, y=500, width=1000, height=200)
+        
+        # Disable the text widgets to prevent editing
+        self.long_paragraph.config(state=tk.DISABLED)
+        self.long_paragraph2.config(state=tk.DISABLED)
 
 
 if __name__ == "__main__":

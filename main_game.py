@@ -2,13 +2,7 @@
 where the player will click on rubbish to collect money and sanitary points.
 When the player collect enough points, they can upgrade their tools
 and hire cleaners to help them collect rubbish. Moreover, the player can
-achieve the good and bad ending by reaching a certain sanitary value.
-
-Main Menu Music by: Royalty Free Music: https://www.bensound.com\
-License code: Z4B0MZ7L27NBZYQA}I
-
-Buying sound effect: Buy or Sell Item 1 by Sabacky 
--- https://freesound.org/s/766069/ -- License: Attribution 4.0"""
+achieve the good and bad ending by reaching a certain sanitary value."""
 
 # Importing libraries
 import tkinter as tk
@@ -55,9 +49,9 @@ class Game(tk.Tk):
         self.money = 0
         self.sanitary = 0
         self.money_per_click = 5
-        self.sanitary_per_click = 10
+        self.sanitary_per_click = 8
         self.sanitary_per_lost = -15
-        self.bad_ending_points = -500
+        self.bad_ending_points = -300
         self.good_ending_points = 1000
         self.fall_speed = 10
         self.current_frame_name = None
@@ -197,6 +191,7 @@ class GameMain(tk.Frame):
         self.running = False
         self.spawning_rubbish = False 
         self.spawning_rubbish_id = None  
+        self.bubble_animation_running = False
         self.canvas = None 
         self.game_over = False
         self.load_background_images()  
@@ -445,8 +440,6 @@ class GameMain(tk.Frame):
         bubble_image.image = bubble_image  # Prevent garbage collection
         self.bubbles.append(bubble_sprite)
         self.bubbles_images.append(bubble_image)
-        # Start animating
-        self.animate_bubbles()
     
     def generate_bubble_periodically(self):
         """Spawns a bubble every few seconds if particle quality is enabled."""
@@ -462,7 +455,7 @@ class GameMain(tk.Frame):
         for bubble in self.bubbles:
             coords = self.canvas.coords(bubble)
             if coords[1] > 200:
-                self.canvas.move(bubble, 0, -0.4)
+                self.canvas.move(bubble, 0, -1)
             else:
                 # If bubble goes off screen, reset its position
                 new_x = random.randint(20, 1100)
@@ -482,9 +475,12 @@ class GameMain(tk.Frame):
         current_quality = self.controller.frames[SettingMenu].quality[0]
         if (self.game_over or not self.running or current_quality == "Disabled"):
             self.wipe_all_bubbles()
+            self.bubble_animation_running = False
         elif current_quality == "Enabled":
             self.generate_bubble_periodically()
-
+            if not self.bubble_animation_running:
+                self.bubble_animation_running = True
+                self.animate_bubbles()
         self.after(1000, self.check_quality_change_bubble)
 
             

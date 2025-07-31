@@ -46,7 +46,7 @@ class Game(tk.Tk):
         
         # These are in-game varible, they can change and
         # are often used in function within class.
-        self.money = 0
+        self.money = 10000
         self.sanitary = 0
         self.money_per_click = 5
         self.sanitary_per_click = 10
@@ -597,6 +597,8 @@ class UpgradeMenu(tk.Frame):
                                         width=12, height=2)
         self.better_tool_bt.place(in_=self.shop_bg_bg_lbl, x=720, y=425)
 
+        self.buy_sound = pygame.mixer.Sound("music\sound_effect\purchase.wav")
+
 
         # Button switch to GameMain
         self.switch_window_button = tk.Button(
@@ -644,6 +646,7 @@ class UpgradeMenu(tk.Frame):
         # cost and check player's money.
         cost = self.cost_calc(self.hc_lvl, 'cleaner')
         if self.controller.money >= cost:
+            self.buy_sound.play(loops=0) 
             self.controller.money -= cost
             self.controller.money_per_click += 5
             self.hc_lvl += 1
@@ -711,6 +714,7 @@ class UpgradeMenu(tk.Frame):
         per click and update the cost for the next upgrade level."""
         cost = self.cost_calc(self.rbd_lvl, 'rbd')
         if self.controller.money >= cost:
+            self.buy_sound.play(loops=0) 
             self.controller.money -= cost
             self.controller.money_per_click += 5
             self.rbd_lvl += 1
@@ -726,6 +730,7 @@ class UpgradeMenu(tk.Frame):
         click and also increase the cost of the upgrade"""
         cost = self.cost_calc(self.tool_lvl, 'tool')
         if self.controller.money >= cost:
+            self.buy_sound.play(loops=0) 
             self.controller.money -= cost
             self.controller.sanitary_per_click += 5
             self.tool_lvl += 1

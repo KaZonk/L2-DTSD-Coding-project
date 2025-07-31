@@ -2,7 +2,13 @@
 where the player will click on rubbish to collect money and sanitary points.
 When the player collect enough points, they can upgrade their tools
 and hire cleaners to help them collect rubbish. Moreover, the player can
-achieve the good and bad ending by reaching a certain sanitary value."""
+achieve the good and bad ending by reaching a certain sanitary value.
+
+Main Menu Music by: Royalty Free Music: https://www.bensound.com\
+License code: Z4B0MZ7L27NBZYQA}I
+
+Buying sound effect: Buy or Sell Item 1 by Sabacky 
+-- https://freesound.org/s/766069/ -- License: Attribution 4.0"""
 
 # Importing libraries
 import tkinter as tk

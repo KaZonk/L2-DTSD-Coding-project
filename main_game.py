@@ -46,7 +46,7 @@ class Game(tk.Tk):
         
         # These are in-game varible, they can change and
         # are often used in function within class.
-        self.money = 10000
+        self.money = 0
         self.sanitary = 0
         self.money_per_click = 5
         self.sanitary_per_click = 10

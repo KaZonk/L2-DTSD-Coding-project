@@ -47,7 +47,7 @@ class Game(tk.Tk):
         self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-        # Initialize the pygame mixer
+        # Initialize the pygame mixer to play music.
         pygame.mixer.init()
         
         # These are in-game varible, they can change and
@@ -409,7 +409,7 @@ class GameMain(tk.Frame):
         self.controller.money = 0
         self.controller.sanitary = 0
         self.controller.money_per_click = 5
-        self.controller.sanitary_per_click = 10
+        self.controller.sanitary_per_click = 8
         self.controller.frames[UpgradeMenu].update_money()
         self.sanitary_lbl.config(text="Sanitary: 0")
         self.controller.frames[UpgradeMenu].reset_shop()
@@ -477,7 +477,8 @@ class GameMain(tk.Frame):
         self.bubbles.clear()
     
     def check_quality_change_bubble(self):
-        """Checks the quality setting and updates bubbles accordingly."""
+        """Checks the quality setting and updates the bubble animation,
+        generating bubbles if enabled, or stopping the animation if disabled."""
         current_quality = self.controller.frames[SettingMenu].quality[0]
         if (self.game_over or not self.running or current_quality == "Disabled"):
             self.wipe_all_bubbles()
@@ -863,10 +864,6 @@ class HelpMenu(tk.Frame):
         creates labels for instructions, and includes a button to switch back
         to the main menu."""
         tk.Frame.__init__(self, parent)
-        
-        # title of setting
-        label = tk.Label(self, text="This is Help menu")
-        label.pack(padx=10, pady=10)
 
         # Load the background.
         self.help_bg = Image.open("Sprites/help_page_bg.png")
@@ -903,7 +900,7 @@ class HelpMenu(tk.Frame):
         "Upgrade tools, disposer system and even hire cleaners "
         "and clean the Reef more thoroughly. "
         "When you're ready, you can start the game by clicking on "
-        "the 'Play' button on the main menu. "
+        "the 'Play Game' button on the main menu. "
         )
         self.instruction2 = tk.Text(self, height = 12, width = 125, 
                                         font=controller.description_font,
@@ -936,10 +933,6 @@ class AboutMenu(tk.Frame):
     def __init__(self, parent, controller):
         """This function initializes the AboutMenu, sets the background,"""
         tk.Frame.__init__(self, parent)
-        
-        # title of setting
-        label = tk.Label(self, text="This is About menu")
-        label.pack(padx=10, pady=10)
 
         # Load the background.
         self.about_bg = Image.open("Sprites/About_Page_bg.png")
@@ -970,7 +963,7 @@ class AboutMenu(tk.Frame):
         "This game was created by K. "
         "The art was created by me on Canva, music was basic stock sound effect "
         "from www.freesound.org. The coding was done by me but I'd like "
-        "to thank my teacher, Mrs S. and many random forum on stack exchange, "
+        "to thank my teacher, Mrs S. and many forum on Stack Overflow, "
         "and Co Pilot for helping me fix errors and bugs. "
         )
 
@@ -989,7 +982,7 @@ class AboutMenu(tk.Frame):
         "of the ocean, your task is to clean up the ocean by clicking on "
         "rubbish and collecting money. The game is a fun way to learn about "
         "the importance of keeping our oceans clean and the impact "
-        "of pollution on marine life. I hope you enjoy playing this game "
+        "of pollution on marine life. I hope you'll enjoy playing this game "
         )
 
         self.long_paragraph2 = tk.Text(self, height = 12, width = 125, 

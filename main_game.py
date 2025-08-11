@@ -21,8 +21,8 @@ import pygame
 
 
 class Game(tk.Tk):
-    """Initilising Main window as a class"""
-    #These varible are used to define the colours, fonts and other constants
+    """Initialising Main window as a class"""
+    #These variables are used to define the colours, fonts and other constants
     # colours
     MENU_BLUE = "#0cc0df" 
     TEXT_GOLD = "#dbae3c"
@@ -201,6 +201,10 @@ class GameMain(tk.Frame):
         self.canvas = None 
         self.game_over = False
         self.load_background_images()  
+
+        # define the starting sanitary and money per click.
+        self.start_spc = 8
+        self.start_mpc = 5
 
         # create a subframe to hold canvas
         sub_frame = tk.Frame(self)
@@ -408,8 +412,8 @@ class GameMain(tk.Frame):
         self.wipe_all_rubbish()
         self.controller.money = 0
         self.controller.sanitary = 0
-        self.controller.money_per_click = 5
-        self.controller.sanitary_per_click = 8
+        self.controller.money_per_click = self.start_mpc
+        self.controller.sanitary_per_click = self.start_spc
         self.controller.frames[UpgradeMenu].update_money()
         self.sanitary_lbl.config(text="Sanitary: 0")
         self.controller.frames[UpgradeMenu].reset_shop()
@@ -490,7 +494,6 @@ class GameMain(tk.Frame):
                 self.animate_bubbles()
         self.after(1000, self.check_quality_change_bubble)
 
-            
 
 class UpgradeMenu(tk.Frame):
     """UpgradeMenu is the menu where the player can buy upgrades in order
@@ -501,6 +504,11 @@ class UpgradeMenu(tk.Frame):
         disposer, and better tools. It also includes a button to switch back"""
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        
+        # Starting cost for each upgrade.
+        self.hc_start_cost = 105
+        self.rbd_start_cost = 30
+        self.tool_start_cost = 30
 
         # Load the background.
         self.shop_bg = Image.open("Sprites/shop_menu_bg.png")
@@ -520,7 +528,7 @@ class UpgradeMenu(tk.Frame):
         self.money_lbl.place(in_=self.shop_bg_bg_lbl, x=100, y=50)
 
         # Hire Cleaner money label and button
-        self.hire_cleaner_lbl = tk.Label(self, text="Cost: $105",
+        self.hire_cleaner_lbl = tk.Label(self, text=f"Cost: {self.hc_start_cost}",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
         self.hire_cleaner_lbl.place(in_=self.shop_bg_bg_lbl, x=125, y=325)
@@ -559,8 +567,7 @@ class UpgradeMenu(tk.Frame):
                                 cleaner_4, cleaner_5, cleaner_6]
 
         # Rubbish Disposer(money per click) label and upgrade button
-
-        self.rbd_lbl = tk.Label(self, text="Cost: $30",
+        self.rbd_lbl = tk.Label(self, text=(f"Cost: ${self.rbd_start_cost}"),
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
         self.rbd_lbl.place(in_=self.shop_bg_bg_lbl, x=430, y=325)
@@ -583,7 +590,8 @@ class UpgradeMenu(tk.Frame):
         self.rbd_bt.place(in_=self.shop_bg_bg_lbl, x=415, y=425)
 
         # better tool money label and button       
-        self.better_tool_lbl = tk.Label(self, text="Cost: $30",
+        self.better_tool_lbl = tk.Label(self, 
+                                        text=f"Cost: ${self.tool_start_cost}",
                                         font=controller.place_holder_font, 
                                         bg=controller.MENU_BLUE)
         self.better_tool_lbl.place(in_=self.shop_bg_bg_lbl, x=735, y=325)
@@ -624,9 +632,9 @@ class UpgradeMenu(tk.Frame):
     def reset_shop(self):
         """Reset the shop state, including costs and labels.
         And delete every cleaner sprite."""
-        self.rbd_lbl.config(text="Cost: $105")  
-        self.better_tool_lbl.config(text="Cost: $30")  
-        self.hire_cleaner_lbl.config(text="Cost: $30")
+        self.rbd_lbl.config(text=f"Cost: ${self.rbd_start_cost}")  
+        self.better_tool_lbl.config(text=f"Cost: ${self.tool_start_cost}")  
+        self.hire_cleaner_lbl.config(text=f"Cost: ${self.hc_start_cost}")
         self.hc_lvl = 0
         self.hc_lvl_lbl.config(text="Cleaner Level: 0")
         self.rbd_lvl = 0
@@ -827,7 +835,6 @@ class SettingMenu(tk.Frame):
                                 y=280, anchor="center"
                                 )
         
-
         # Button switch to main menu
         self.switch_window_button = tk.Button(
             self, text="Back to Main Menu", bg=controller.BT_BLUE, 
@@ -836,7 +843,6 @@ class SettingMenu(tk.Frame):
             command=lambda: controller.show_frame(MainPage)
         )
         self.switch_window_button.pack(side="top", anchor="ne")
-
 
 
     def update_volume_lbl(self, value):
@@ -956,7 +962,6 @@ class AboutMenu(tk.Frame):
         self.switch_window_button.place(relx=1.0, rely=0.0, anchor="ne", 
                                         x=-10, y=10
         )
-
 
         # First Paragraph
         self.long_text = (

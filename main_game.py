@@ -1,8 +1,19 @@
 """This is a Clicker game, 
 where the player will click on rubbish to collect money and sanitary points.
-When the player collect enough points, they can upgrade their tools
+When the player collects enough points, they can upgrade their tools
 and hire cleaners to help them collect rubbish. Moreover, the player can
-achieve the good and bad ending by reaching a certain sanitary value.
+achieve the good and bad endings by reaching a certain sanitary value.
+Made by Kane Dao
+Made with Python, mainly with the Tkinter library
+Date finished 8/8/25
+Honourable mention: Ms Marnette Strauss, Matthew, Noah, GitHub Copilot, 
+Stack Overflow.
+Dishonourable mention: Campbell Robert.
+--------------------------------------------------------------------------
+Purpose of program:
+To raise awareness among children about ocean pollution through a game
+Functionality:
+A clicker game, click on rubbish, get money, buy an upgrade, repeat
 --------------------------------------------------------------------------
 Main Menu Music by: Royalty Free Music: https://www.bensound.com\
 License code: Z4B0MZ7L27NBZYQA}I
